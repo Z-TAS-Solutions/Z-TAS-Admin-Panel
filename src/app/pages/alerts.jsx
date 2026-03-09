@@ -1,135 +1,188 @@
-import { Outlet, Link, useLocation } from "react-router";
-import {
-  Users,
-  Settings,
-  Bell,
-  ShieldCheck,
-  Search,
-  ChevronDown,
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, Shield, MapPin, Clock } from "lucide-react";
 
-const navItems = [
-  { path: "/users", label: "Users", icon: Users },
-  { path: "/alerts", label: "Alerts", icon: Bell },
-  { path: "/settings", label: "Settings", icon: Settings },
+const alertsData = [
+  {
+    id: "ALR-9384",
+    type: "suspicious",
+    severity: "high",
+    title: "Multiple Failed Login Attempts",
+    description: "User USR-6629 has 5 failed login attempts from IP 172.16.0.89",
+    location: "Los Angeles, US",
+    timestamp: "2024-03-04 14:19:32",
+  },
+  {
+    id: "ALR-9383",
+    type: "device",
+    severity: "medium",
+    title: "Unrecognized Device Login",
+    description: "New device detected for user USR-4521 from Chicago, US",
+    location: "Chicago, US",
+    timestamp: "2024-03-04 13:45:18",
+  },
+  {
+    id: "ALR-9382",
+    type: "otp",
+    severity: "low",
+    title: "OTP Request Spike",
+    description: "Unusual increase in OTP requests detected (45% above average)",
+    location: "System-wide",
+    timestamp: "2024-03-04 12:30:45",
+  },
+  {
+    id: "ALR-9381",
+    type: "suspicious",
+    severity: "high",
+    title: "Suspicious Geographic Login",
+    description: "User USR-7341 logged in from two different continents within 10 minutes",
+    location: "Multiple Locations",
+    timestamp: "2024-03-04 11:22:11",
+  },
+  {
+    id: "ALR-9380",
+    type: "account",
+    severity: "medium",
+    title: "Account Lockout",
+    description: "User USR-4521 account locked due to excessive failed attempts",
+    location: "Boston, US",
+    timestamp: "2024-03-04 10:15:33",
+  },
+  {
+    id: "ALR-9379",
+    type: "device",
+    severity: "low",
+    title: "New Passkey Registration",
+    description: "User USR-8492 registered a new passkey from iOS device",
+    location: "New York, US",
+    timestamp: "2024-03-04 09:42:27",
+  },
 ];
 
-export function AdminLayout() {
-  const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+const getSeverityColor = (severity) => {
+  switch (severity) {
+    case "high":
+      return "text-[#FF3B5C] bg-[#FF3B5C]/10 border-[#FF3B5C]/20";
+    case "medium":
+      return "text-[#FFB800] bg-[#FFB800]/10 border-[#FFB800]/20";
+    case "low":
+      return "text-[#00C2FF] bg-[#00C2FF]/10 border-[#00C2FF]/20";
+    default:
+      return "text-gray-400 bg-gray-400/10 border-gray-400/20";
+  }
+};
 
+const getTypeIcon = (type) => {
+  switch (type) {
+    case "suspicious":
+      return AlertTriangle;
+    case "device":
+      return Shield;
+    default:
+      return Shield;
+  }
+};
+
+export function Alerts() {
   return (
-    <div className="min-h-screen">
-      {/* Top Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 glass-panel border-b border-[#00C2FF]/20 z-50">
-        <div className="h-full flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold neon-text">Security Alerts</h1>
+        <p className="text-sm text-gray-400 mt-1">
+          Real-time security alerts and suspicious activity monitoring
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
+          <p className="text-sm text-gray-400">Total Alerts (24h)</p>
+          <p className="text-2xl font-bold neon-text mt-1">34</p>
+        </div>
+        <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-[#FF3B5C] pulse-glow"></div>
+            <p className="text-sm text-gray-400">High Severity</p>
+          </div>
+          <p className="text-2xl font-bold text-[#FF3B5C]">8</p>
+        </div>
+        <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-[#FFB800] pulse-glow"></div>
+            <p className="text-sm text-gray-400">Medium Severity</p>
+          </div>
+          <p className="text-2xl font-bold text-[#FFB800]">15</p>
+        </div>
+        <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-[#00C2FF] pulse-glow"></div>
+            <p className="text-sm text-gray-400">Low Severity</p>
+          </div>
+          <p className="text-2xl font-bold text-[#00C2FF]">11</p>
+        </div>
+      </div>
+
+      {/* Alerts Feed */}
+      <div className="space-y-4">
+        {alertsData.map((alert) => {
+          const Icon = getTypeIcon(alert.type);
+          return (
+            <div
+              key={alert.id}
+              className={`glass-panel p-6 rounded-xl border ${getSeverityColor(
+                alert.severity
+              )} stat-card`}
             >
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00C2FF] to-[#1E90FF] flex items-center justify-center">
-                <ShieldCheck size={24} />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold neon-text">ZTAS Admin Console</h1>
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-2 h-2 rounded-full bg-[#00FF88] pulse-glow"></div>
-                  <span className="status-active">SCANNING ACTIVE</span>
+              <div className="flex items-start gap-4">
+                <div
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${getSeverityColor(
+                    alert.severity
+                  )}`}
+                >
+                  <Icon size={24} />
+                </div>
+
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="text-lg font-semibold">{alert.title}</h3>
+                      <p className="text-sm text-gray-400 mt-1">{alert.description}</p>
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${getSeverityColor(
+                        alert.severity
+                      )}`}
+                    >
+                      {alert.severity}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm text-gray-400 mt-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} className="text-[#00C2FF]" />
+                      <span>{alert.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock size={14} className="text-[#00C2FF]" />
+                      <span className="font-mono">{alert.timestamp}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs text-gray-500">{alert.id}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button className="px-4 py-2 rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors text-sm">
+                    View Details
+                  </button>
+                  <button className="px-4 py-2 rounded-lg border border-[#00FF88]/20 text-[#00FF88] hover:bg-[#00FF88]/10 transition-colors text-sm">
+                    Resolve
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* Search Bar */}
-            <div className="hidden md:flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20">
-              <Search size={16} className="text-[#00C2FF]" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-transparent border-none outline-none w-48 text-sm"
-              />
-            </div>
-
-            {/* Notification Bell */}
-            <button className="relative p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors">
-              <Bell size={20} className="text-[#00C2FF]" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#FF3B5C] rounded-full"></span>
-            </button>
-
-            {/* Admin Profile */}
-            <button className="flex items-center gap-2 glass-panel px-3 py-2 rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00C2FF] to-[#1E90FF] flex items-center justify-center text-xs font-semibold">
-                SA
-              </div>
-              <span className="hidden md:inline text-sm">Super Admin</span>
-              <ChevronDown size={16} />
-            </button>
-          </div>
-        </div>
-        <div className="scanning-line"></div>
-      </header>
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed top-16 left-0 bottom-0 w-64 sidebar-nav z-40 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
-      >
-        <nav className="p-4 space-y-1 overflow-y-auto h-full">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              location.pathname === item.path ||
-              (item.path !== "/" && location.pathname.startsWith(item.path));
-
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg ${
-                  isActive ? "active" : ""
-                }`}
-              >
-                <Icon size={18} />
-                <span className="text-sm">{item.label}</span>
-              </Link>
-            );
-          })}
-
-          <button className="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left mt-4 border-t border-[#00C2FF]/20 pt-4">
-            <LogOut size={18} />
-            <span className="text-sm">Logout</span>
-          </button>
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main
-        className={`pt-20 transition-all duration-300 ${
-          sidebarOpen ? "lg:pl-64" : ""
-        } pl-0`}
-      >
-        <div className="p-6">
-          <Outlet />
-        </div>
-      </main>
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        ></div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }
