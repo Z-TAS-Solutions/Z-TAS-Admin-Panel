@@ -1,5 +1,5 @@
+import { Settings as SettingsIcon, Bell, Shield, Globe, Database, Mail } from "lucide-react";
 import { useState } from "react";
-import { Settings as SettingsIcon, Bell, Shield, Database, Mail } from "lucide-react";
 
 export function Settings() {
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -9,11 +9,11 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
-
-      {/* Page Title */}
       <div>
         <h1 className="text-2xl font-bold neon-text">System Settings</h1>
-        <p className="text-sm text-gray-400 mt-1">Configure system-wide settings and preferences</p>
+        <p className="text-sm text-gray-400 mt-1">
+          Configure system-wide settings and preferences
+        </p>
       </div>
 
       {/* General Settings */}
@@ -22,22 +22,25 @@ export function Settings() {
           <SettingsIcon size={20} className="text-[#00C2FF]" />
           General Settings
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold mb-2">System Name</label>
-            <input
-              type="text"
-              defaultValue="ZTAS Admin Console"
-              className="w-full bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2">Time Zone</label>
-            <select className="w-full bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]">
-              <option>UTC-5 (Eastern Time)</option>
-              <option>UTC-8 (Pacific Time)</option>
-              <option>UTC+0 (GMT)</option>
-            </select>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold mb-2">System Name</label>
+              <input
+                type="text"
+                defaultValue="ZTAS Admin Console"
+                className="w-full bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Time Zone</label>
+              <select className="w-full bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]">
+                <option>UTC-5 (Eastern Time)</option>
+                <option>UTC-8 (Pacific Time)</option>
+                <option>UTC+0 (GMT)</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -48,25 +51,45 @@ export function Settings() {
           <Bell size={20} className="text-[#00C2FF]" />
           Notification Settings
         </h2>
+        
         <div className="space-y-4">
-
-          {/* toggle row reused twice */}
-          {[
-            { icon: Mail,  label: "Email Notifications", desc: "Receive security alerts via email",           value: emailNotifications, set: setEmailNotifications },
-            { icon: Bell,  label: "Push Notifications",  desc: "Browser push notifications for critical alerts", value: pushNotifications,  set: setPushNotifications  },
-          ].map(({ icon: Icon, label, desc, value, set }) => (
-            <div key={label} className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
-              <div className="flex items-center gap-3">
-                <Icon size={20} className="text-[#00C2FF]" />
-                <div>
-                  <p className="font-semibold">{label}</p>
-                  <p className="text-sm text-gray-400">{desc}</p>
-                </div>
+          <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
+            <div className="flex items-center gap-3">
+              <Mail size={20} className="text-[#00C2FF]" />
+              <div>
+                <p className="font-semibold">Email Notifications</p>
+                <p className="text-sm text-gray-400">Receive security alerts via email</p>
               </div>
-              <Toggle value={value} onChange={set} />
             </div>
-          ))}
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={emailNotifications}
+                onChange={(e) => setEmailNotifications(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
+            </label>
+          </div>
 
+          <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
+            <div className="flex items-center gap-3">
+              <Bell size={20} className="text-[#00C2FF]" />
+              <div>
+                <p className="font-semibold">Push Notifications</p>
+                <p className="text-sm text-gray-400">Browser push notifications for critical alerts</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={pushNotifications}
+                onChange={(e) => setPushNotifications(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -76,8 +99,8 @@ export function Settings() {
           <Shield size={20} className="text-[#00C2FF]" />
           Security Settings
         </h2>
+        
         <div className="space-y-4">
-
           <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
             <div className="flex items-center gap-3">
               <Shield size={20} className="text-[#00C2FF]" />
@@ -86,7 +109,15 @@ export function Settings() {
                 <p className="text-sm text-gray-400">Require 2FA for admin console access</p>
               </div>
             </div>
-            <Toggle value={twoFactorAuth} onChange={setTwoFactorAuth} />
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={twoFactorAuth}
+                onChange={(e) => setTwoFactorAuth(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
+            </label>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -108,7 +139,6 @@ export function Settings() {
               </select>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -118,8 +148,8 @@ export function Settings() {
           <Database size={20} className="text-[#00C2FF]" />
           Backup & Recovery
         </h2>
+        
         <div className="space-y-4">
-
           <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
             <div className="flex items-center gap-3">
               <Database size={20} className="text-[#00C2FF]" />
@@ -128,7 +158,15 @@ export function Settings() {
                 <p className="text-sm text-gray-400">Daily automated database backups</p>
               </div>
             </div>
-            <Toggle value={autoBackup} onChange={setAutoBackup} />
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoBackup}
+                onChange={(e) => setAutoBackup(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
+            </label>
           </div>
 
           <div className="flex gap-4">
@@ -139,7 +177,6 @@ export function Settings() {
               Restore from Backup
             </button>
           </div>
-
         </div>
       </div>
 
@@ -149,17 +186,6 @@ export function Settings() {
           Save All Changes
         </button>
       </div>
-
     </div>
-  );
-}
-
-// --- Reusable toggle switch component ---
-function Toggle({ value, onChange }) {
-  return (
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
-      <div className="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
-    </label>
   );
 }
