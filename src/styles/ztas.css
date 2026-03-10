@@ -1,0 +1,53 @@
+/* ZTAS Admin Panel Custom Styles */
+
+:root {
+    --ztas-bg: #060B18;
+    --ztas-bg-dark: #030509;
+    --ztas-blue: #00C2FF;
+    --ztas-cyan: #1E90FF;
+    --ztas-panel: rgba(20, 30, 48, 0.6);
+    --ztas-panel-border: rgba(0, 194, 255, 0.2);
+    --ztas-glow: rgba(0, 194, 255, 0.4);
+}
+
+body {
+    background: var(--ztas-bg);
+    color: #E8F0FF;
+    font-family: 'Inter', 'system-ui', sans-serif;
+}
+
+/* Glassmorphism panels */
+.glass-panel {
+    background: var(--ztas-panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--ztas-panel-border);
+    border-radius: 12px;
+}
+
+/* Neon glow effects */
+.neon-glow {
+    box-shadow: 0 0 20px rgba(0, 194, 255, 0.3),
+        0 0 40px rgba(0, 194, 255, 0.1);
+}
+
+.neon-border {
+    border: 1px solid var(--ztas-blue);
+    box-shadow: 0 0 10px rgba(0, 194, 255, 0.4);
+}
+
+.neon-text {
+    color: var(--ztas-blue);
+    text-shadow: 0 0 10px rgba(0, 194, 255, 0.6);
+}
+
+/* Gradient button */
+.gradient-button {
+    background: linear-gradient(135deg, var(--ztas-blue) 0%, var(--ztas-cyan) 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.gradient-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 194, 255, 0.5);
+}
