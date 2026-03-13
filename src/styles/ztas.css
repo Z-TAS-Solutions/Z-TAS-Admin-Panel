@@ -138,14 +138,15 @@ body {
 }
 
 .table-row:hover {
-    background: rgba(0, 194, 255, 0.05);
-    border-left: 2px solid var(--ztas-blue);
+    background: rgba(0, 194, 255, 0.07);
+    border-left: 3px solid var(--ztas-blue);
+    padding-left: 1px;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
