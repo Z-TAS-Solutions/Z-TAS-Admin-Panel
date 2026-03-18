@@ -3,17 +3,26 @@ import {
   LayoutDashboard,
   Key,
   Bell,
+  Users,
+  Settings,
+  ShieldCheck,
   Search,
   ChevronDown,
   LogOut,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/passkeys", label: "Passkeys", icon: Key },
+  { path: "/users", label: "Users", icon: Users },
+  { path: "/alerts", label: "Alerts", icon: Bell },
+  { path: "/settings", label: "Settings", icon: Settings },
+  { path: "/", label: "MFA Settings", icon: Settings },
+  { path: "/analytics", label: "System Analytics", icon: BarChart3 },
 ];
 
 export function AdminLayout() {
@@ -33,12 +42,8 @@ export function AdminLayout() {
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg overflow-hidden">
-                <img
-                  src="/z_taslogo.png"
-                  alt="ZTAS Logo"
-                  className="w-full h-full object-contain"
-                />
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+                <img src="/z_taslogo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h1 className="text-lg font-semibold neon-text">ZTAS Admin Console</h1>
