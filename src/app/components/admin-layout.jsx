@@ -33,8 +33,8 @@ export function AdminLayout() {
                             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00C2FF] to-[#1E90FF] flex items-center justify-center">
-                                <ShieldCheck size={24} />
+                            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+                                <img src="ztas_logo.png" alt="Logo" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <h1 className="text-lg font-semibold neon-text">ZTAS Admin Console</h1>
