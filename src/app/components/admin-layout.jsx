@@ -1,6 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router";
 import {
-    ShieldCheck,
     Smartphone,
     Bell,
     Search,
@@ -8,12 +7,25 @@ import {
     LogOut,
     Menu,
     X,
+  LayoutDashboard,
+  Key,
+  Users,
+  Settings,
+  ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
-    { path: "/", label: "Authentication Logs", icon: ShieldCheck },
+    { path: "/", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/passkeys", label: "Passkeys", icon: Key },
+    { path: "/users", label: "Users", icon: Users },
     { path: "/devices", label: "Devices", icon: Smartphone },
+    { path: "/alerts", label: "Alerts", icon: Bell },
+    { path: "/settings", label: "Settings", icon: Settings },
+    { path: "/mfa-settings", label: "MFA Settings", icon: Settings },
+    { path: "/analytics", label: "System Analytics", icon: BarChart3 },
+    { path: "/auth-logs", label: "Authentication Logs", icon: ShieldCheck },
 ];
 
 export function AdminLayout() {
@@ -34,7 +46,7 @@ export function AdminLayout() {
                         </button>
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
-                                <img src="ztas_logo.png" alt="Logo" className="w-full h-full object-contain" />
+                                <img src="/z_taslogo.png" alt="Logo" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <h1 className="text-lg font-semibold neon-text">ZTAS Admin Console</h1>
@@ -47,6 +59,7 @@ export function AdminLayout() {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {/* Search Bar */}
                         <div className="hidden md:flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20">
                             <Search size={16} className="text-[#00C2FF]" />
                             <input
@@ -56,11 +69,13 @@ export function AdminLayout() {
                             />
                         </div>
 
+                        {/* Notification Bell */}
                         <button className="relative p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors">
                             <Bell size={20} className="text-[#00C2FF]" />
                             <span className="absolute top-1 right-1 w-2 h-2 bg-[#FF3B5C] rounded-full"></span>
                         </button>
 
+                        {/* Admin Profile */}
                         <button className="flex items-center gap-2 glass-panel px-3 py-2 rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00C2FF] to-[#1E90FF] flex items-center justify-center text-xs font-semibold">
                                 SA
@@ -75,23 +90,24 @@ export function AdminLayout() {
 
             {/* Sidebar */}
             <aside
-                className={`fixed top-16 left-0 bottom-0 w-64 sidebar-nav z-40 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                    } lg:translate-x-0`}
+                className={`fixed top-16 left-0 bottom-0 w-64 sidebar-nav z-40 transition-transform duration-300 ${
+                    sidebarOpen ? "translate-x-0" : "-translate-x-full"
+                } lg:translate-x-0`}
             >
                 <nav className="p-4 space-y-1 overflow-y-auto h-full">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive =
-                            item.path === "/"
-                                ? location.pathname === "/"
-                                : location.pathname === item.path;
+                            location.pathname === item.path ||
+                            (item.path !== "/" && location.pathname.startsWith(item.path));
 
                         return (
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg ${isActive ? "active" : ""
-                                    }`}
+                                className={`sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg ${
+                                    isActive ? "active" : ""
+                                }`}
                             >
                                 <Icon size={18} />
                                 <span className="text-sm">{item.label}</span>
@@ -108,15 +124,16 @@ export function AdminLayout() {
 
             {/* Main Content */}
             <main
-                className={`pt-20 transition-all duration-300 ${sidebarOpen ? "lg:pl-64" : ""
-                    } pl-0`}
+                className={`pt-20 transition-all duration-300 ${
+                    sidebarOpen ? "lg:pl-64" : ""
+                } pl-0`}
             >
                 <div className="p-6">
                     <Outlet />
                 </div>
             </main>
 
-            {/* Mobile overlay  */}
+            {/* Mobile Overlay */}
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-30 lg:hidden"
