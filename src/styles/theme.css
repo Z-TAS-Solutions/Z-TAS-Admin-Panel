@@ -128,6 +128,14 @@
     @apply bg-background text-foreground;
   }
 
+<<<<<<< HEAD
+=======
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+>>>>>>> af0e3389fcbe380c1f613851104536ac651c286d
   html {
     font-size: var(--font-size);
   }
