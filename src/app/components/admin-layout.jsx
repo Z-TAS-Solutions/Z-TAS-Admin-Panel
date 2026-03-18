@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +17,8 @@ const navItems = [
   { path: "/users", label: "Users", icon: Users },
   { path: "/alerts", label: "Alerts", icon: Bell },
   { path: "/settings", label: "Settings", icon: Settings },
+  { path: "/", label: "MFA Settings", icon: Settings },
+  { path: "/analytics", label: "System Analytics", icon: BarChart3 },
 ];
 
 export function AdminLayout() {
