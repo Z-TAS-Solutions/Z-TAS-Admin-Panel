@@ -7,25 +7,25 @@ import {
     LogOut,
     Menu,
     X,
-  LayoutDashboard,
-  Key,
-  Users,
-  Settings,
-  ShieldCheck,
-  BarChart3,
+    LayoutDashboard,
+    Key,
+    Users,
+    Settings,
+    ShieldCheck,
+    BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/passkeys", label: "Passkeys", icon: Key },
-    { path: "/users", label: "Users", icon: Users },
-    { path: "/devices", label: "Devices", icon: Smartphone },
-    { path: "/alerts", label: "Alerts", icon: Bell },
-    { path: "/settings", label: "Settings", icon: Settings },
-    { path: "/mfa-settings", label: "MFA Settings", icon: Settings },
-    { path: "/analytics", label: "System Analytics", icon: BarChart3 },
-    { path: "/auth-logs", label: "Authentication Logs", icon: ShieldCheck },
+    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/dashboard/passkeys", label: "Passkeys", icon: Key },
+    { path: "/dashboard/users", label: "Users", icon: Users },
+    { path: "/dashboard/devices", label: "Devices", icon: Smartphone },
+    { path: "/dashboard/alerts", label: "Alerts", icon: Bell },
+    { path: "/dashboard/settings", label: "Settings", icon: Settings },
+    { path: "/dashboard/mfa-settings", label: "MFA Settings", icon: Settings },
+    { path: "/dashboard/analytics", label: "System Analytics", icon: BarChart3 },
+    { path: "/dashboard/auth-logs", label: "Authentication Logs", icon: ShieldCheck },
 ];
 
 export function AdminLayout() {
@@ -90,9 +90,8 @@ export function AdminLayout() {
 
             {/* Sidebar */}
             <aside
-                className={`fixed top-16 left-0 bottom-0 w-64 sidebar-nav z-40 transition-transform duration-300 ${
-                    sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                } lg:translate-x-0`}
+                className={`fixed top-16 left-0 bottom-0 w-64 sidebar-nav z-40 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    } lg:translate-x-0`}
             >
                 <nav className="p-4 space-y-1 overflow-y-auto h-full">
                     {navItems.map((item) => {
@@ -105,9 +104,8 @@ export function AdminLayout() {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg ${
-                                    isActive ? "active" : ""
-                                }`}
+                                className={`sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg ${isActive ? "active" : ""
+                                    }`}
                             >
                                 <Icon size={18} />
                                 <span className="text-sm">{item.label}</span>
@@ -124,9 +122,8 @@ export function AdminLayout() {
 
             {/* Main Content */}
             <main
-                className={`pt-20 transition-all duration-300 ${
-                    sidebarOpen ? "lg:pl-64" : ""
-                } pl-0`}
+                className={`pt-20 transition-all duration-300 ${sidebarOpen ? "lg:pl-64" : ""
+                    } pl-0`}
             >
                 <div className="p-6">
                     <Outlet />

@@ -9,10 +9,15 @@ import { Settings } from "./pages/settings";
 import { Alerts } from "./pages/alerts";
 import { AuthLogs } from "./pages/auth-logs";
 import { Devices } from "./pages/devices";
+import { Login } from "./pages/login";
+import { Register } from "./pages/register";
 
 export const router = createBrowserRouter([
+  { path: "/", Component: Login },
+  { path: "/login", Component: Login },
+  { path: "/register", Component: Register },
   {
-    path: "/",
+    path: "/dashboard",
     Component: AdminLayout,
     children: [
       { index: true, Component: Dashboard },
