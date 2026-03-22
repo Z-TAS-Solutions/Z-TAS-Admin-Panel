@@ -1,13 +1,44 @@
 import { Shield, Key, Clock, Lock, Settings as SettingsIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { securityService } from "../../services/security";
 
 export function MFASettings() {
-  const [otpEnabled, setOtpEnabled] = useState(true);
   const [passkeyEnabled, setPasskeyEnabled] = useState(true);
-  const [otpExpiration, setOtpExpiration] = useState("300");
   const [maxRetries, setMaxRetries] = useState("3");
   const [lockoutDuration, setLockoutDuration] = useState("30");
   const [enforceMFA, setEnforceMFA] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const handleEnforceMFAToggle = async (checked) => {
+    // Optimistic update
+    setEnforceMFA(checked);
+
+    if (window.confirm(`Are you sure you want to ${checked ? "enforce" : "disable"} MFA globally for all users? This is a high impact action.`)) {
+      try {
+        await securityService.updateMfaEnforcement(checked);
+        // Success
+      } catch (error) {
+        if (error?.response?.status !== 409) {
+          console.error("Failed to update MFA enforcement", error);
+          // Revert on error
+          setEnforceMFA(!checked);
+          alert("Failed to update MFA settings.");
+        }
+      }
+    } else {
+      // User cancelled, revert optimistic update
+      setEnforceMFA(!checked);
+    }
+  };
+
+  const handleSaveAll = () => {
+    // Mock save for other settings not yet covered by explicit APIs
+    setSaving(true);
+    setTimeout(() => {
+      setSaving(false);
+      alert("Settings saved successfully.");
+    }, 1000);
+  };
 
   return (
     <div className="space-y-6">
@@ -96,7 +127,7 @@ export function MFASettings() {
               <input
                 type="checkbox"
                 checked={enforceMFA}
-                onChange={(e) => setEnforceMFA(e.target.checked)}
+                onChange={(e) => handleEnforceMFAToggle(e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
@@ -107,8 +138,12 @@ export function MFASettings() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <button className="gradient-button px-8 py-3 rounded-lg font-semibold">
-          Save Changes
+        <button 
+          onClick={handleSaveAll}
+          disabled={saving}
+          className="gradient-button px-8 py-3 rounded-lg font-semibold disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>

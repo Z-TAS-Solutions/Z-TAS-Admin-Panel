@@ -18,10 +18,17 @@ export function Login() {
 
     console.log("Login with credentials:", { email });
 
-    // Once backend done, call api to navig to dashboard
+    // TEMPORARY: Bypass API and navigate strictly for dev testing
+    localStorage.setItem("access_token", "dummy-dev-token");
+    navigate("/dashboard");
   };
 
   const handlePasskeyLogin = async () => {
+    // TEMPORARY: Bypass passkey/API and navigate directly for dev testing
+    localStorage.setItem("access_token", "dummy-dev-token");
+    navigate("/dashboard");
+
+    /*
     try {
       // WebAuthn API
       const credential = await navigator.credentials.get({
@@ -38,6 +45,7 @@ export function Login() {
       console.error("Passkey authentication failed:", err);
       setError("Passkey login failed. Please try again.");
     }
+    */
   };
 
   return (

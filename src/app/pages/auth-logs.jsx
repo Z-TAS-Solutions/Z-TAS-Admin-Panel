@@ -1,108 +1,90 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Download, Filter, CheckCircle2, XCircle, Clock } from "lucide-react";
-
-const authLogsData = [
-    {
-        id: "LOG-48923",
-        timestamp: "2024-03-04 14:23:11",
-        userId: "USR-8492",
-        userName: "Sarah Mitchell",
-        status: "Success",
-        ipAddress: "192.168.1.45",
-        location: "Colombo, LK",
-    },
-    {
-        id: "LOG-48922",
-        timestamp: "2024-03-04 14:21:45",
-        userId: "USR-7341",
-        userName: "James Rodriguez",
-        status: "Success",
-        ipAddress: "10.0.0.112",
-        location: "Kandy, LK",
-    },
-    {
-        id: "LOG-48921",
-        timestamp: "2024-03-04 14:19:32",
-        userId: "USR-6629",
-        userName: "Emily Chen",
-        status: "Failed",
-        ipAddress: "172.16.0.89",
-        location: "Galle, LK",
-    },
-    {
-        id: "LOG-48920",
-        timestamp: "2024-03-04 14:18:07",
-        userId: "USR-9012",
-        userName: "Michael Brown",
-        status: "Success",
-        ipAddress: "192.168.1.67",
-        location: "Negombo, LK",
-    },
-    {
-        id: "LOG-48919",
-        timestamp: "2024-03-04 14:15:54",
-        userId: "USR-4521",
-        userName: "Jessica Taylor",
-        status: "Success",
-        ipAddress: "10.0.0.234",
-        location: "Jaffna, LK",
-    },
-    {
-        id: "LOG-48918",
-        timestamp: "2024-03-04 14:12:33",
-        userId: "USR-3318",
-        userName: "David Kim",
-        status: "Failed",
-        ipAddress: "192.168.1.123",
-        location: "Matara, LK",
-    },
-    {
-        id: "LOG-48917",
-        timestamp: "2024-03-04 14:10:18",
-        userId: "USR-2207",
-        userName: "Amanda White",
-        status: "Success",
-        ipAddress: "172.16.0.45",
-        location: "Trincomalee, LK",
-    },
-    {
-        id: "LOG-48916",
-        timestamp: "2024-03-04 14:08:22",
-        userId: "USR-1156",
-        userName: "Robert Garcia",
-        status: "Failed",
-        ipAddress: "10.0.0.178",
-        location: "Batticaloa, LK",
-    },
-];
+import { authLogsService } from "../../services/authLogs";
+import { systemService } from "../../services/security";
 
 export function AuthLogs() {
+    const [logs, setLogs] = useState([]);
+    const [analytics, setAnalytics] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [latency, setLatency] = useState("--");
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const limit = 20;
+
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
     const [showFilters, setShowFilters] = useState(false);
 
-    const filteredLogs = authLogsData.filter((log) => {
-        const matchesSearch =
-            log.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.timestamp.includes(searchTerm);
-        const matchesStatus = statusFilter === "all" || log.status.toLowerCase() === statusFilter;
-        
-        let matchesDate = true;
-        if (fromDate || toDate) {
-            const logDate = new Date(log.timestamp);
-            if (fromDate && new Date(fromDate) > logDate) matchesDate = false;
-            if (toDate) {
-                const toDateObj = new Date(toDate);
-                toDateObj.setHours(23, 59, 59, 999);
-                if (toDateObj < logDate) matchesDate = false;
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const [analyticsRes, latencyRes] = await Promise.allSettled([
+                    authLogsService.getAnalytics(),
+                    (async () => {
+                        const t0 = Date.now();
+                        await systemService.ping();
+                        return `${Date.now() - t0}ms`;
+                    })()
+                ]);
+
+                if (analyticsRes.status === "fulfilled" && analyticsRes.value) {
+                    setAnalytics(analyticsRes.value.data?.metrics);
+                }
+
+                if (latencyRes.status === "fulfilled") {
+                    setLatency(latencyRes.value);
+                }
+            } catch (error) {
+                console.error("Failed to load analytics", error);
             }
-        }
+        };
+
+        fetchInitialData();
+    }, []);
+
+    useEffect(() => {
+        const fetchLogs = async () => {
+            try {
+                setLoading(true);
+                const params = {
+                    limit,
+                    offset: (page - 1) * limit
+                };
+
+                if (searchTerm) params.search = searchTerm;
+                if (statusFilter !== "all") params.status = statusFilter;
+                
+                if (fromDate) params.from = new Date(fromDate).getTime();
+                if (toDate) {
+                    const toDateObj = new Date(toDate);
+                    toDateObj.setHours(23, 59, 59, 999);
+                    params.to = toDateObj.getTime();
+                }
+
+                const response = await authLogsService.getLogs(params);
+                if (response && response.data) {
+                    setLogs(response.data.logs || []);
+                    // Compute total theoretically or handle infinite scroll logic based on API details.
+                    // The API returns { returned, has_more, offset, limit } or similar.
+                    // For typical pagination we will assume total exists or we calculate based on length:
+                    setTotal((response.data.pagination?.offset || 0) + (response.data.logs?.length || 0) + (response.data.pagination?.has_more ? 1 : 0));
+                }
+            } catch (error) {
+                console.error("Failed to load logs", error);
+            } finally {
+                setLoading(false);
+            }
+        };
         
-        return matchesSearch && matchesStatus && matchesDate;
-    });
+        const timeoutId = setTimeout(() => {
+            fetchLogs();
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm, statusFilter, fromDate, toDate, page]);
 
     return (
         <div className="space-y-6">
@@ -126,28 +108,28 @@ export function AuthLogs() {
                         <CheckCircle2 size={18} className="text-[#00FF88]" />
                         <p className="text-sm text-gray-400">Successful (24h)</p>
                     </div>
-                    <p className="text-2xl font-bold text-[#00FF88]">8,234</p>
+                    <p className="text-2xl font-bold text-[#00FF88]">{analytics ? analytics.successful_logins.toLocaleString() : "..."}</p>
                 </div>
                 <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
                     <div className="flex items-center gap-2 mb-2">
                         <XCircle size={18} className="text-[#FF3B5C]" />
                         <p className="text-sm text-gray-400">Failed (24h)</p>
                     </div>
-                    <p className="text-2xl font-bold text-[#FF3B5C]">127</p>
+                    <p className="text-2xl font-bold text-[#FF3B5C]">{analytics ? analytics.failed_logins.toLocaleString() : "..."}</p>
                 </div>
                 <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
                     <div className="flex items-center gap-2 mb-2">
                         <Clock size={18} className="text-[#00C2FF]" />
                         <p className="text-sm text-gray-400">Avg Response Time</p>
                     </div>
-                    <p className="text-2xl font-bold neon-text">124ms</p>
+                    <p className="text-2xl font-bold neon-text">{latency}</p>
                 </div>
                 <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
                     <div className="flex items-center gap-2 mb-2">
                         <Filter size={18} className="text-[#FFB800]" />
                         <p className="text-sm text-gray-400">Suspicious</p>
                     </div>
-                    <p className="text-2xl font-bold text-[#FFB800]">8</p>
+                    <p className="text-2xl font-bold text-[#FFB800]">{analytics ? analytics.suspicious_activities.toLocaleString() : "..."}</p>
                 </div>
             </div>
 
@@ -236,40 +218,78 @@ export function AuthLogs() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredLogs.map((log) => (
-                                <tr key={log.id} className="table-row">
-                                    <td className="py-4 px-4 text-sm font-mono">{log.userId}</td>
-                                    <td className="py-4 px-4 text-sm font-mono text-gray-400">
-                                        {log.timestamp}
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <div className="text-sm font-medium">{log.userName}</div>
-                                    </td>
-                                    <td className="py-4 px-4 text-sm">
-                                        <span
-                                            className={`px-2 py-1 rounded text-xs flex items-center gap-1 w-fit ${log.status === "Success"
-                                                ? "bg-[#00FF88]/10 text-[#00FF88]"
-                                                : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
-                                                }`}
-                                        >
-                                            {log.status === "Success" ? (
-                                                <CheckCircle2 size={12} />
-                                            ) : (
-                                                <XCircle size={12} />
-                                            )}
-                                            {log.status}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 px-4 text-sm font-mono text-gray-400">
-                                        {log.ipAddress}
-                                    </td>
-                                    <td className="py-4 px-4 text-sm text-gray-400">{log.location}</td>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="6" className="py-8 text-center text-gray-400">Loading logs...</td>
                                 </tr>
-                            ))}
+                            ) : logs.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="py-8 text-center text-gray-400">No logs found.</td>
+                                </tr>
+                            ) : (
+                                logs.map((log) => (
+                                    <tr key={log.log_id || log.id} className="table-row">
+                                        <td className="py-4 px-4 text-sm font-mono">{log.user_id || log.userId}</td>
+                                        <td className="py-4 px-4 text-sm font-mono text-gray-400">
+                                            {log.timestamp ? new Date(log.timestamp).toLocaleString() : "Unknown"}
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <div className="text-sm font-medium">{log.user_name || log.userName}</div>
+                                        </td>
+                                        <td className="py-4 px-4 text-sm">
+                                            <span
+                                                className={`px-2 py-1 rounded text-xs flex items-center gap-1 w-fit ${
+                                                    (log.status || "").toLowerCase() === "success"
+                                                    ? "bg-[#00FF88]/10 text-[#00FF88]"
+                                                    : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
+                                                    }`}
+                                            >
+                                                {(log.status || "").toLowerCase() === "success" ? (
+                                                    <CheckCircle2 size={12} />
+                                                ) : (
+                                                    <XCircle size={12} />
+                                                )}
+                                                {/* Capitalize first letter */}
+                                                {log.status ? log.status.charAt(0).toUpperCase() + log.status.slice(1) : "Unknown"}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4 text-sm font-mono text-gray-400">
+                                            {/* API returns device, not ipAddress directly per spec, but mapping what we have */}
+                                            {log.ip_address || "N/A"}
+                                        </td>
+                                        <td className="py-4 px-4 text-sm text-gray-400">{log.location || log.device || "Unknown"}</td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {/* Pagination Controls */}
+            {!loading && total > limit && (
+                <div className="flex items-center justify-between mt-4">
+                <span className="text-sm text-gray-400">
+                    Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} logs
+                </span>
+                <div className="flex gap-2">
+                    <button 
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    <button 
+                        disabled={page * limit >= total}
+                        onClick={() => setPage(p => p + 1)}
+                        className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+                </div>
+            )}
         </div>
     );
 }

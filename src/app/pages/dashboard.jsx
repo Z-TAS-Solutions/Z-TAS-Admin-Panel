@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { dashboardService } from "../../services/dashboard";
+import { systemService } from "../../services/security";
 import {
   Users,
   Activity,
@@ -22,47 +25,9 @@ import {
   Legend,
 } from "recharts";
 
-const authTrendData = [
-  { time: "00:00", successful: 245, failed: 12 },
-  { time: "04:00", successful: 189, failed: 8 },
-  { time: "08:00", successful: 678, failed: 23 },
-  { time: "12:00", successful: 892, failed: 34 },
-  { time: "16:00", successful: 734, failed: 19 },
-  { time: "20:00", successful: 456, failed: 15 },
-];
+const authTrendData = [];
 
-const recentActivity = [
-  {
-    userId: "USR-8492",
-    device: "iPhone 13 Pro",
-    status: "Success",
-    timestamp: "2024-03-04 14:23:11",
-  },
-  {
-    userId: "USR-7341",
-    device: "Samsung Galaxy S24",
-    status: "Success",
-    timestamp: "2024-03-04 14:21:45",
-  },
-  {
-    userId: "USR-6629",
-    device: "iPhone 15",
-    status: "Failed",
-    timestamp: "2024-03-04 14:19:32",
-  },
-  {
-    userId: "USR-9012",
-    device: "Google Pixel 8",
-    status: "Success",
-    timestamp: "2024-03-04 14:18:07",
-  },
-  {
-    userId: "USR-4521",
-    device: "OnePlus 12",
-    status: "Success",
-    timestamp: "2024-03-04 14:15:54",
-  },
-];
+const recentActivity = [];
 
 const StatCard = ({ title, value, icon: Icon, trend, trendValue }) => (
   <div className="glass-panel p-6 rounded-xl border border-[#00C2FF]/20 stat-card">
@@ -89,42 +54,84 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue }) => (
 );
 
 export function Dashboard() {
+  const [analytics, setAnalytics] = useState(null);
+  const [authTrends, setAuthTrends] = useState([]);
+  const [recentAuth, setRecentAuth] = useState([]);
+  const [latency, setLatency] = useState("--");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [analyticsRes, trendsRes, activityRes] = await Promise.all([
+          dashboardService.getAnalytics(),
+          dashboardService.getAuthTrends({ interval: 'hour' }),
+          dashboardService.getRecentActivity({ page: 1, limit: 10 }),
+        ]);
+        console.log("Analytics:", analyticsRes);
+        setAnalytics(analyticsRes);
+        
+        // Format auth trends for recharts
+        const formattedTrends = (trendsRes.data || []).map(item => ({
+          time: new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          successful: item.successCount || 0,
+          failed: item.failureCount || 0
+        }));
+        setAuthTrends(formattedTrends);
+
+        setRecentAuth(activityRes.data || []);
+      } catch (error) {
+        console.error("Failed to load dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+
+    // Setup Ping Latency check
+    const checkPing = async () => {
+      try {
+        const t0 = Date.now();
+        await systemService.ping();
+        const t1 = Date.now();
+        setLatency(`${t1 - t0}ms`);
+      } catch (err) {
+        console.warn("Ping failed");
+      }
+    };
+    checkPing();
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Registered Users"
-          value="12,847"
+          value={analytics ? analytics.totalUsers.toLocaleString() : "..."}
           icon={Users}
-          trend="up"
-          trendValue="+12%"
         />
         <StatCard
           title="Active Sessions"
-          value="3,492"
+          value={analytics ? analytics.activeSessions.toLocaleString() : "..."}
           icon={Activity}
-          trend="up"
-          trendValue="+8%"
         />
         <StatCard
-          title="Successful Auth (24h)"
-          value="8,234"
+          title="Success Rate"
+          value={analytics ? `${analytics.successRate}%` : "..."}
           icon={CheckCircle2}
-          trend="up"
-          trendValue="+15%"
         />
         <StatCard
-          title="Failed Attempts (24h)"
-          value="127"
-          icon={XCircle}
-          trend="down"
-          trendValue="-3%"
+          title="Suspicious Activity"
+          value={analytics ? analytics.suspiciousActivity.toLocaleString() : "..."}
+          icon={AlertTriangle}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Average Response Time" value="124ms" icon={Activity} />
+        <StatCard title="Average Response Time" value={latency} icon={Activity} />
       </div>
 
       {/* Charts Section */}
@@ -136,7 +143,10 @@ export function Dashboard() {
             Authentication Trends (24 Hours)
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={authTrendData}>
+            {loading ? (
+               <div className="flex items-center justify-center h-full text-gray-400">Loading chart...</div>
+            ) : (
+            <LineChart data={authTrends}>
               <CartesianGrid strokeDasharray="3 3" stroke="#00C2FF20" />
               <XAxis dataKey="time" stroke="#ffffff60" />
               <YAxis stroke="#ffffff60" />
@@ -163,6 +173,7 @@ export function Dashboard() {
                 dot={{ fill: "#FF3B5C", r: 4 }}
               />
             </LineChart>
+            )}
           </ResponsiveContainer>
         </div>
 
@@ -195,26 +206,36 @@ export function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {recentActivity.map((activity, index) => (
-                <tr key={index} className="table-row">
-                  <td className="py-3 px-4 text-sm font-mono">{activity.userId}</td>
-                  <td className="py-3 px-4 text-sm">{activity.device}</td>
-
-                  <td className="py-3 px-4 text-sm">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${activity.status === "Success"
-                          ? "bg-[#00FF88]/10 text-[#00FF88]"
-                          : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
-                        }`}
-                    >
-                      {activity.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-400 font-mono">
-                    {activity.timestamp}
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="text-center py-4 text-gray-400">Loading recent activity...</td>
                 </tr>
-              ))}
+              ) : recentAuth.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="text-center py-4 text-gray-400">No recent activity</td>
+                </tr>
+              ) : (
+                recentAuth.map((activity, index) => (
+                  <tr key={index} className="table-row">
+                    <td className="py-3 px-4 text-sm font-mono">{activity.userId}</td>
+                    <td className="py-3 px-4 text-sm">{activity.device}</td>
+
+                    <td className="py-3 px-4 text-sm">
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${activity.status === "success"
+                            ? "bg-[#00FF88]/10 text-[#00FF88]"
+                            : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
+                          }`}
+                      >
+                        {activity.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-400 font-mono">
+                      {new Date(activity.timestamp).toLocaleString()}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

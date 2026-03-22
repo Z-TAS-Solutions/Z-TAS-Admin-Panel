@@ -1,30 +1,88 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Smartphone, MapPin, LogOut, Monitor, Tablet, Search } from "lucide-react";
-
-const devicesData = Array.from({ length: 45 }).map((_, i) => ({
-    deviceId: `DEV-${9000 + i}`,
-    deviceName: i % 3 === 0 ? "iPhone 13 Pro" : i % 3 === 1 ? "Samsung Galaxy S24" : "Google Pixel 8",
-    ipAddress: `192.168.1.${10 + i}`,
-    location: i % 3 === 0 ? "Colombo, LK" : i % 3 === 1 ? "Kandy, LK" : "Galle, LK",
-    lastActive: "2024-03-04 14:23:11",
-    icon: Smartphone,
-}));
+import { devicesService } from "../../services/devices";
 
 export function Devices() {
+    const [devices, setDevices] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [limit, setLimit] = useState(15);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const limit = 20;
 
-    const filteredDevices = devicesData.filter(d => 
-        d.deviceId.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        const fetchInitialDevices = async () => {
+            try {
+                setLoading(true);
+                const params = { limit, offset: 0 };
+                if (searchTerm) params.search = searchTerm;
+                
+                const response = await devicesService.getDevices(params);
+                if (response && response.data) {
+                    setDevices(response.data.devices || []);
+                    setHasMore(response.data.pagination?.has_more || false);
+                    setOffset(response.data.pagination?.offset || limit);
+                }
+            } catch (error) {
+                console.error("Failed to fetch initial devices", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const displayedDevices = filteredDevices.slice(0, limit);
+        const timeoutId = setTimeout(() => {
+            fetchInitialDevices();
+        }, 300);
 
-    const handleScroll = (e) => {
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
+
+    const handleScroll = async (e) => {
         const bottom = e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 50;
-        if (bottom && limit < filteredDevices.length) {
-            setLimit(prev => prev + 10);
+        if (bottom && hasMore && !isFetchingMore) {
+            try {
+                setIsFetchingMore(true);
+                const params = { limit, offset };
+                if (searchTerm) params.search = searchTerm;
+                
+                const response = await devicesService.getDevices(params);
+                if (response && response.data) {
+                    setDevices(prev => [...prev, ...(response.data.devices || [])]);
+                    setHasMore(response.data.pagination?.has_more || false);
+                    setOffset(response.data.pagination?.offset || offset + limit);
+                }
+            } catch (error) {
+                console.error("Failed to fetch more devices", error);
+            } finally {
+                setIsFetchingMore(false);
+            }
         }
+    };
+
+    const handleForceLogout = async (deviceId) => {
+        if (!window.confirm("Are you sure you want to force logout this device?")) return;
+        
+        try {
+            await devicesService.forceLogout(deviceId);
+            // Remove the device from the list after successful logout
+            setDevices(prev => prev.filter(d => d.device_id !== deviceId));
+        } catch (error) {
+            // Check for 409 softly as per requirements, handled in apiClient generally
+            // but we can remove it here if it's already logged out.
+            if (error?.response?.status === 409) {
+                 setDevices(prev => prev.filter(d => d.device_id !== deviceId));
+            } else {
+                 console.error("Failed to force logout", error);
+            }
+        }
+    };
+
+    const getDeviceIcon = (deviceName = "") => {
+        const name = deviceName.toLowerCase();
+        if (name.includes("ipad") || name.includes("tablet")) return Tablet;
+        if (name.includes("windows") || name.includes("mac") || name.includes("desktop")) return Monitor;
+        return Smartphone;
     };
     return (
         <div className="space-y-6">
@@ -80,43 +138,62 @@ export function Devices() {
                             </tr>
                         </thead>
                         <tbody>
-                            {displayedDevices.map((device, idx) => {
-                                const Icon = device.icon;
-                                return (
-                                    <tr key={`${device.deviceId}-${idx}`} className="table-row">
-                                        <td className="py-4 px-4 text-sm font-mono">{device.deviceId}</td>
-                                        <td className="py-4 px-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00C2FF]/20 to-[#1E90FF]/20 flex items-center justify-center">
-                                                    <Icon size={18} className="text-[#00C2FF]" />
+                            {loading && offset === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="py-8 text-center text-gray-400">Loading devices...</td>
+                                </tr>
+                            ) : devices.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="py-8 text-center text-gray-400">No devices found.</td>
+                                </tr>
+                            ) : (
+                                devices.map((device, idx) => {
+                                    const Icon = getDeviceIcon(device.device_name);
+                                    return (
+                                        <tr key={`${device.device_id}-${idx}`} className="table-row">
+                                            <td className="py-4 px-4 text-sm font-mono">{device.device_id}</td>
+                                            <td className="py-4 px-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00C2FF]/20 to-[#1E90FF]/20 flex items-center justify-center">
+                                                        <Icon size={18} className="text-[#00C2FF]" />
+                                                    </div>
+                                                    <span className="text-sm font-medium">{device.device_name}</span>
                                                 </div>
-                                                <span className="text-sm font-medium">{device.deviceName}</span>
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        <td className="py-4 px-4 text-sm font-mono text-gray-400">
-                                            {device.ipAddress}
-                                        </td>
-                                        <td className="py-4 px-4 text-sm text-gray-400">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin size={14} className="text-[#00C2FF]" />
-                                                {device.location}
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 text-sm font-mono text-gray-400">
-                                            {device.lastActive}
-                                        </td>
-                                        <td className="py-4 px-4">
-                                            <button className="flex items-center gap-2 px-3 py-2 hover:bg-[#FF3B5C]/10 rounded-lg transition-colors group text-sm">
-                                                <LogOut size={14} className="text-gray-400 group-hover:text-[#FF3B5C]" />
-                                                <span className="text-gray-400 group-hover:text-[#FF3B5C]">
-                                                    Force Logout
-                                                </span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                            <td className="py-4 px-4 text-sm font-mono text-gray-400">
+                                                {/* The API spec didn't mention IP explicitly, keeping placeholder or empty if undefined */}
+                                                {device.ip_address || "N/A"}
+                                            </td>
+                                            <td className="py-4 px-4 text-sm text-gray-400">
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={14} className="text-[#00C2FF]" />
+                                                    {device.location || "Unknown"}
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-4 text-sm font-mono text-gray-400">
+                                                {device.last_active ? new Date(device.last_active).toLocaleString() : "Unknown"}
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <button 
+                                                    onClick={() => handleForceLogout(device.device_id)}
+                                                    className="flex items-center gap-2 px-3 py-2 hover:bg-[#FF3B5C]/10 rounded-lg transition-colors group text-sm"
+                                                >
+                                                    <LogOut size={14} className="text-gray-400 group-hover:text-[#FF3B5C]" />
+                                                    <span className="text-gray-400 group-hover:text-[#FF3B5C]">
+                                                        Force Logout
+                                                    </span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                            {isFetchingMore && (
+                                <tr>
+                                    <td colSpan="6" className="py-4 text-center text-sm text-gray-400">Loading more...</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

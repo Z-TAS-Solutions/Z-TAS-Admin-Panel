@@ -1,90 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, Eye, Lock, Unlock, CheckCircle2, XCircle } from "lucide-react";
-
-const usersData = [
-  {
-    id: "USR-8492",
-    name: "Sarah Mitchell",
-    email: "sarah.mitchell@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: true,
-    passkeyStatus: "Active",
-    lastLogin: "2024-03-04 14:23:11",
-    status: "active",
-  },
-  {
-    id: "USR-7341",
-    name: "James Rodriguez",
-    email: "james.r@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: true,
-    passkeyStatus: "Active",
-    lastLogin: "2024-03-04 13:45:22",
-    status: "active",
-  },
-  {
-    id: "USR-6629",
-    name: "Emily Chen",
-    email: "emily.chen@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: false,
-    passkeyStatus: "Inactive",
-    lastLogin: "2024-03-03 09:12:45",
-    status: "active",
-  },
-  {
-    id: "USR-9012",
-    name: "Michael Brown",
-    email: "m.brown@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: true,
-    passkeyStatus: "Active",
-    lastLogin: "2024-03-04 11:30:18",
-    status: "active",
-  },
-  {
-    id: "USR-4521",
-    name: "Jessica Taylor",
-    email: "j.taylor@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: true,
-    passkeyStatus: "Inactive",
-    lastLogin: "2024-03-02 16:55:33",
-    status: "inactive",
-  },
-  {
-    id: "USR-3318",
-    name: "David Kim",
-    email: "david.kim@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: false,
-    passkeyStatus: "Inactive",
-    lastLogin: "2024-03-04 08:20:11",
-    status: "active",
-  },
-  {
-    id: "USR-2207",
-    name: "Amanda White",
-    email: "a.white@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: true,
-    passkeyStatus: "Active",
-    lastLogin: "2024-03-04 10:45:29",
-    status: "active",
-  },
-  {
-    id: "USR-1156",
-    name: "Robert Garcia",
-    email: "robert.g@gmail.com",
-    phone: "+94 771234567",
-    mfaEnabled: true,
-    passkeyStatus: "Active",
-    lastLogin: "2024-03-01 14:15:42",
-    status: "active",
-  },
-];
+import { usersService } from "../../services/users";
 
 export function Users() {
+  const [users, setUsers] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -92,27 +16,83 @@ export function Users() {
   const [toDate, setToDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const filteredUsers = usersData.filter(
-    (user) => {
-      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.id.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesStatus = filterStatus === "all" || user.status === filterStatus;
-
-      let matchesDate = true;
-      if (fromDate || toDate) {
-        const userDate = new Date(user.lastLogin);
-        if (fromDate && new Date(fromDate) > userDate) matchesDate = false;
+  // Fetch users when filters or pagination changes
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const params = {
+          limit,
+          offset: (page - 1) * limit,
+        };
+        
+        if (searchTerm) params.search = searchTerm;
+        if (filterStatus !== "all") params.status = filterStatus;
+        if (fromDate) params.lastLoginFrom = new Date(fromDate).toISOString();
         if (toDate) {
-          const toDateObj = new Date(toDate);
-          toDateObj.setHours(23, 59, 59, 999);
-          if (toDateObj < userDate) matchesDate = false;
+          const endDate = new Date(toDate);
+          endDate.setHours(23, 59, 59, 999);
+          params.lastLoginTo = endDate.toISOString();
         }
+
+        const response = await usersService.getUsers(params);
+        if (response) {
+          setUsers(response.data || []);
+          setTotal(response.total || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch users", error);
+      } finally {
+        setLoading(false);
       }
-      return matchesSearch && matchesStatus && matchesDate;
+    };
+
+    // Quick debounce for search term
+    const timeoutId = setTimeout(() => {
+      fetchUsers();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, filterStatus, fromDate, toDate, page, limit]);
+
+  const handleToggleLock = async (user) => {
+    // If active, we block it (locked: true). If inactive, we restore (locked: false).
+    const willLock = user.status === "active";
+    
+    // Optimistic UI update
+    setUsers(prev => prev.map(u => 
+      u.userId === user.userId 
+        ? { ...u, status: willLock ? "inactive" : "active" } 
+        : u
+    ));
+    if (selectedUser && selectedUser.userId === user.userId) {
+      setSelectedUser({ ...selectedUser, status: willLock ? "inactive" : "active" });
     }
-  );
+
+    try {
+      if (window.confirm(`Are you sure you want to ${willLock ? "lock" : "unlock"} this user?`)) {
+        await usersService.updateLockStatus(user.userId, willLock);
+      } else {
+        // Revert on cancel
+        setUsers(prev => prev.map(u => 
+          u.userId === user.userId 
+            ? { ...u, status: user.status } 
+            : u
+        ));
+        if (selectedUser && selectedUser.userId === user.userId) setSelectedUser({ ...selectedUser, status: user.status });
+      }
+    } catch (error) {
+      console.error("Failed to update user lock status", error);
+      // Revert on error
+      setUsers(prev => prev.map(u => 
+        u.userId === user.userId 
+          ? { ...u, status: user.status } 
+          : u
+      ));
+      if (selectedUser && selectedUser.userId === user.userId) setSelectedUser({ ...selectedUser, status: user.status });
+      alert("Failed to update user lock status.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -220,60 +200,96 @@ export function Users() {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="table-row">
-                  <td className="py-4 px-4 text-sm font-mono">{user.id}</td>
-                  <td className="py-4 px-4 text-sm font-medium">{user.name}</td>
-                  <td className="py-4 px-4 text-sm text-gray-400">{user.email}</td>
-                  <td className="py-4 px-4 text-sm text-gray-400">{user.phone}</td>
-                  <td className="py-4 px-4 text-sm">
-                    {user.mfaEnabled ? (
-                      <CheckCircle2 size={18} className="text-[#00FF88]" />
-                    ) : (
-                      <XCircle size={18} className="text-gray-500" />
-                    )}
-                  </td>
-
-                  <td className="py-4 px-4 text-sm text-gray-400 font-mono">
-                    {user.lastLogin}
-                  </td>
-                  <td className="py-4 px-4 text-sm">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${user.status === "active"
-                          ? "bg-[#00FF88]/10 text-[#00FF88]"
-                          : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
-                        }`}
-                    >
-                      {user.status === "active" ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setSelectedUser(user)}
-                        className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
-                        title="View Details"
-                      >
-                        <Eye size={16} className="text-[#00C2FF]" />
-                      </button>
-                      <button
-                        className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
-                        title={user.status === "active" ? "Deactivate Account" : "Activate Account"}
-                      >
-                        {user.status === "active" ? (
-                          <Lock size={16} className="text-[#FFB800]" />
-                        ) : (
-                          <Unlock size={16} className="text-[#00FF88]" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-gray-400">Loading users...</td>
                 </tr>
-              ))}
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-gray-400">No users found.</td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.userId} className="table-row">
+                    <td className="py-4 px-4 text-sm font-mono">{user.userId}</td>
+                    <td className="py-4 px-4 text-sm font-medium">{user.name}</td>
+                    <td className="py-4 px-4 text-sm text-gray-400">{user.email || "-"}</td>
+                    <td className="py-4 px-4 text-sm text-gray-400">{user.phone || "-"}</td>
+                    <td className="py-4 px-4 text-sm">
+                      {user.mfaEnabled ? (
+                        <CheckCircle2 size={18} className="text-[#00FF88]" />
+                      ) : (
+                        <XCircle size={18} className="text-gray-500" />
+                      )}
+                    </td>
+
+                    <td className="py-4 px-4 text-sm text-gray-400 font-mono">
+                      {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : "Never"}
+                    </td>
+                    <td className="py-4 px-4 text-sm">
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${user.status === "active"
+                            ? "bg-[#00FF88]/10 text-[#00FF88]"
+                            : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
+                          }`}
+                      >
+                        {user.status === "active" ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedUser(user)}
+                          className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={16} className="text-[#00C2FF]" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleLock(user)}
+                          className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
+                          title={user.status === "active" ? "Deactivate Account" : "Activate Account"}
+                        >
+                          {user.status === "active" ? (
+                            <Lock size={16} className="text-[#FFB800]" />
+                          ) : (
+                            <Unlock size={16} className="text-[#00FF88]" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && total > limit && (
+        <div className="flex items-center justify-between mt-4">
+          <span className="text-sm text-gray-400">
+            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} users
+          </span>
+          <div className="flex gap-2">
+            <button 
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+              className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button 
+              disabled={page * limit >= total}
+              onClick={() => setPage(p => p + 1)}
+              className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* User Detail Modal */}
       {selectedUser && (
@@ -291,7 +307,7 @@ export function Users() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-400">User ID</p>
-                  <p className="font-mono text-[#00C2FF]">{selectedUser.id}</p>
+                  <p className="font-mono text-[#00C2FF]">{selectedUser.userId}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Status</p>
@@ -305,15 +321,15 @@ export function Users() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
-                  <p className="text-sm">{selectedUser.email}</p>
+                  <p className="text-sm">{selectedUser.email || "-"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Phone</p>
-                  <p>{selectedUser.phone}</p>
+                  <p>{selectedUser.phone || "-"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Last Login</p>
-                  <p className="text-sm font-mono">{selectedUser.lastLogin}</p>
+                  <p className="text-sm font-mono">{selectedUser.lastLogin ? new Date(selectedUser.lastLogin).toLocaleString() : "Never"}</p>
                 </div>
               </div>
 
@@ -337,7 +353,10 @@ export function Users() {
                 >
                   Close
                 </button>
-                <button className="px-4 py-2 rounded-lg border border-[#FFB800] text-[#FFB800] hover:bg-[#FFB800]/10 transition-colors">
+                <button 
+                  onClick={() => handleToggleLock(selectedUser)}
+                  className="px-4 py-2 rounded-lg border border-[#FFB800] text-[#FFB800] hover:bg-[#FFB800]/10 transition-colors"
+                >
                   {selectedUser.status === "active" ? "Deactivate Account" : "Activate Account"}
                 </button>
               </div>
