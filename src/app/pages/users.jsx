@@ -5,8 +5,8 @@ const usersData = [
   {
     id: "USR-8492",
     name: "Sarah Mitchell",
-    email: "sarah.mitchell@company.com",
-    phone: "+1 (555) 123-4567",
+    email: "sarah.mitchell@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 14:23:11",
@@ -15,8 +15,8 @@ const usersData = [
   {
     id: "USR-7341",
     name: "James Rodriguez",
-    email: "james.r@company.com",
-    phone: "+1 (555) 234-5678",
+    email: "james.r@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 13:45:22",
@@ -25,8 +25,8 @@ const usersData = [
   {
     id: "USR-6629",
     name: "Emily Chen",
-    email: "emily.chen@company.com",
-    phone: "+1 (555) 345-6789",
+    email: "emily.chen@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: false,
     passkeyStatus: "Inactive",
     lastLogin: "2024-03-03 09:12:45",
@@ -35,8 +35,8 @@ const usersData = [
   {
     id: "USR-9012",
     name: "Michael Brown",
-    email: "m.brown@company.com",
-    phone: "+1 (555) 456-7890",
+    email: "m.brown@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 11:30:18",
@@ -45,18 +45,18 @@ const usersData = [
   {
     id: "USR-4521",
     name: "Jessica Taylor",
-    email: "j.taylor@company.com",
-    phone: "+1 (555) 567-8901",
+    email: "j.taylor@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Inactive",
     lastLogin: "2024-03-02 16:55:33",
-    status: "locked",
+    status: "inactive",
   },
   {
     id: "USR-3318",
     name: "David Kim",
-    email: "david.kim@company.com",
-    phone: "+1 (555) 678-9012",
+    email: "david.kim@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: false,
     passkeyStatus: "Inactive",
     lastLogin: "2024-03-04 08:20:11",
@@ -65,8 +65,8 @@ const usersData = [
   {
     id: "USR-2207",
     name: "Amanda White",
-    email: "a.white@company.com",
-    phone: "+1 (555) 789-0123",
+    email: "a.white@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 10:45:29",
@@ -75,8 +75,8 @@ const usersData = [
   {
     id: "USR-1156",
     name: "Robert Garcia",
-    email: "robert.g@company.com",
-    phone: "+1 (555) 890-1234",
+    email: "robert.g@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-01 14:15:42",
@@ -87,12 +87,31 @@ const usersData = [
 export function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredUsers = usersData.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase())
+    (user) => {
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus = filterStatus === "all" || user.status === filterStatus;
+
+      let matchesDate = true;
+      if (fromDate || toDate) {
+        const userDate = new Date(user.lastLogin);
+        if (fromDate && new Date(fromDate) > userDate) matchesDate = false;
+        if (toDate) {
+          const toDateObj = new Date(toDate);
+          toDateObj.setHours(23, 59, 59, 999);
+          if (toDateObj < userDate) matchesDate = false;
+        }
+      }
+      return matchesSearch && matchesStatus && matchesDate;
+    }
   );
 
   return (
@@ -111,7 +130,7 @@ export function Users() {
       </div>
 
       {/* Search and Filters */}
-      <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
+      <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20">
             <Search size={18} className="text-[#00C2FF]" />
@@ -123,11 +142,48 @@ export function Users() {
               className="bg-transparent border-none outline-none flex-1"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 glass-panel rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2 glass-panel rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors"
+          >
             <Filter size={18} className="text-[#00C2FF]" />
             <span>Filters</span>
           </button>
         </div>
+        {showFilters && (
+          <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-[#00C2FF]/20">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-400">Status:</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+              >
+                <option value="all" className="bg-[#0A0F1C]">All</option>
+                <option value="active" className="bg-[#0A0F1C]">Active</option>
+                <option value="inactive" className="bg-[#0A0F1C]">Inactive</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-400">From:</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-400">To:</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Users Table */}
@@ -151,9 +207,7 @@ export function Users() {
                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                   MFA
                 </th>
-                <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                  Passkey
-                </th>
+
                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                   Last Login
                 </th>
@@ -179,29 +233,18 @@ export function Users() {
                       <XCircle size={18} className="text-gray-500" />
                     )}
                   </td>
-                  <td className="py-4 px-4 text-sm">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        user.passkeyStatus === "Active"
-                          ? "bg-[#00FF88]/10 text-[#00FF88]"
-                          : "bg-gray-500/10 text-gray-500"
-                      }`}
-                    >
-                      {user.passkeyStatus}
-                    </span>
-                  </td>
+
                   <td className="py-4 px-4 text-sm text-gray-400 font-mono">
                     {user.lastLogin}
                   </td>
                   <td className="py-4 px-4 text-sm">
                     <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        user.status === "active"
+                      className={`px-2 py-1 rounded text-xs ${user.status === "active"
                           ? "bg-[#00FF88]/10 text-[#00FF88]"
                           : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
-                      }`}
+                        }`}
                     >
-                      {user.status === "active" ? "Active" : "Locked"}
+                      {user.status === "active" ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td className="py-4 px-4">
@@ -215,7 +258,7 @@ export function Users() {
                       </button>
                       <button
                         className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
-                        title={user.status === "active" ? "Lock Account" : "Unlock Account"}
+                        title={user.status === "active" ? "Deactivate Account" : "Activate Account"}
                       >
                         {user.status === "active" ? (
                           <Lock size={16} className="text-[#FFB800]" />
@@ -243,7 +286,7 @@ export function Users() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl font-bold neon-text mb-6">User Profile</h2>
-            
+
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -253,7 +296,7 @@ export function Users() {
                 <div>
                   <p className="text-sm text-gray-400">Status</p>
                   <p className={selectedUser.status === "active" ? "text-[#00FF88]" : "text-[#FF3B5C]"}>
-                    {selectedUser.status === "active" ? "Active" : "Locked"}
+                    {selectedUser.status === "active" ? "Active" : "Inactive"}
                   </p>
                 </div>
                 <div>
@@ -283,12 +326,7 @@ export function Users() {
                       {selectedUser.mfaEnabled ? "Yes" : "No"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Passkey Status</span>
-                    <span className={selectedUser.passkeyStatus === "Active" ? "text-[#00FF88]" : "text-gray-500"}>
-                      {selectedUser.passkeyStatus}
-                    </span>
-                  </div>
+
                 </div>
               </div>
 
@@ -300,7 +338,7 @@ export function Users() {
                   Close
                 </button>
                 <button className="px-4 py-2 rounded-lg border border-[#FFB800] text-[#FFB800] hover:bg-[#FFB800]/10 transition-colors">
-                  {selectedUser.status === "active" ? "Lock Account" : "Unlock Account"}
+                  {selectedUser.status === "active" ? "Deactivate Account" : "Activate Account"}
                 </button>
               </div>
             </div>

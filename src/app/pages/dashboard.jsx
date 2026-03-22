@@ -31,44 +31,34 @@ const authTrendData = [
   { time: "20:00", successful: 456, failed: 15 },
 ];
 
-const mfaMethodData = [
-  { name: "OTP", value: 65, color: "#00C2FF" },
-  { name: "Passkey", value: 35, color: "#1E90FF" },
-];
-
 const recentActivity = [
   {
     userId: "USR-8492",
     device: "iPhone 13 Pro",
-    method: "Passkey",
     status: "Success",
     timestamp: "2024-03-04 14:23:11",
   },
   {
     userId: "USR-7341",
-    device: "Chrome - Windows",
-    method: "OTP",
+    device: "Samsung Galaxy S24",
     status: "Success",
     timestamp: "2024-03-04 14:21:45",
   },
   {
     userId: "USR-6629",
-    device: "Safari - MacOS",
-    method: "Passkey",
+    device: "iPhone 15",
     status: "Failed",
     timestamp: "2024-03-04 14:19:32",
   },
   {
     userId: "USR-9012",
-    device: "Android - Samsung",
-    method: "OTP",
+    device: "Google Pixel 8",
     status: "Success",
     timestamp: "2024-03-04 14:18:07",
   },
   {
     userId: "USR-4521",
-    device: "Firefox - Linux",
-    method: "Passkey",
+    device: "OnePlus 12",
     status: "Success",
     timestamp: "2024-03-04 14:15:54",
   },
@@ -82,9 +72,8 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue }) => (
       </div>
       {trend && (
         <div
-          className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${
-            trend === "up" ? "bg-[#00FF88]/10 text-[#00FF88]" : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
-          }`}
+          className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${trend === "up" ? "bg-[#00FF88]/10 text-[#00FF88]" : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
+            }`}
         >
           <TrendingUp
             size={12}
@@ -135,20 +124,13 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="OTP Requests Today" value="5,621" icon={Key} />
-        <StatCard title="Passkey Registrations" value="4,512" icon={Fingerprint} />
-        <StatCard
-          title="Suspicious Activity Alerts"
-          value="8"
-          icon={AlertTriangle}
-        />
         <StatCard title="Average Response Time" value="124ms" icon={Activity} />
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Authentication Trends */}
-        <div className="lg:col-span-2 glass-panel p-6 rounded-xl border border-[#00C2FF]/20">
+        <div className="glass-panel p-6 rounded-xl border border-[#00C2FF]/20">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Activity size={20} className="text-[#00C2FF]" />
             Authentication Trends (24 Hours)
@@ -184,40 +166,7 @@ export function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* MFA Method Distribution */}
-        <div className="glass-panel p-6 rounded-xl border border-[#00C2FF]/20">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Key size={20} className="text-[#00C2FF]" />
-            MFA Method Usage
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={mfaMethodData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(0)}%`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {mfaMethodData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#0A0F1C",
-                  border: "1px solid #00C2FF40",
-                  borderRadius: "8px",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+
       </div>
 
       {/* Recent Activity Table */}
@@ -236,9 +185,7 @@ export function Dashboard() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-[#00C2FF]">
                   Device
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-[#00C2FF]">
-                  Method
-                </th>
+
                 <th className="text-left py-3 px-4 text-sm font-semibold text-[#00C2FF]">
                   Status
                 </th>
@@ -252,18 +199,13 @@ export function Dashboard() {
                 <tr key={index} className="table-row">
                   <td className="py-3 px-4 text-sm font-mono">{activity.userId}</td>
                   <td className="py-3 px-4 text-sm">{activity.device}</td>
-                  <td className="py-3 px-4 text-sm">
-                    <span className="px-2 py-1 rounded bg-[#00C2FF]/10 text-[#00C2FF] text-xs">
-                      {activity.method}
-                    </span>
-                  </td>
+
                   <td className="py-3 px-4 text-sm">
                     <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        activity.status === "Success"
+                      className={`px-2 py-1 rounded text-xs ${activity.status === "Success"
                           ? "bg-[#00FF88]/10 text-[#00FF88]"
                           : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
-                      }`}
+                        }`}
                     >
                       {activity.status}
                     </span>

@@ -8,7 +8,6 @@ import {
     Menu,
     X,
     LayoutDashboard,
-    Key,
     Users,
     Settings,
     ShieldCheck,
@@ -18,7 +17,7 @@ import { useState } from "react";
 
 const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/dashboard/passkeys", label: "Passkeys", icon: Key },
+
     { path: "/dashboard/users", label: "Users", icon: Users },
     { path: "/dashboard/devices", label: "Devices", icon: Smartphone },
     { path: "/dashboard/alerts", label: "Alerts", icon: Bell },

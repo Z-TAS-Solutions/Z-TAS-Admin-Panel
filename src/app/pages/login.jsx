@@ -1,24 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Eye, EyeOff, Fingerprint, Mail, Lock, AlertCircle } from "lucide-react";
+import { Fingerprint, Mail, AlertCircle } from "lucide-react";
 
 export function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleCredentialLogin = (e) => {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
-      setError("Please fill in all fields.");
+    if (!email) {
+      setError("Please fill in the email field.");
       return;
     }
 
-    console.log("Login with credentials:", { email, password });
+    console.log("Login with credentials:", { email });
 
     // Once backend done, call api to navig to dashboard
   };
@@ -96,54 +94,7 @@ export function Login() {
               </div>
             </div>
 
-            <div className="auth-field">
-              <label htmlFor="login-password">Password</label>
-              <div className="auth-input-wrapper">
-                <input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  className="auth-input"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error) setError("");
-                  }}
-                  required
-                  autoComplete="current-password"
-                  aria-label="Password"
-                  style={{ paddingRight: 44 }}
-                />
-                <button
-                  type="button"
-                  className="auth-password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="auth-submit"
-              id="login-submit"
-              disabled={!email || !password}
-              style={{
-                opacity: (!email || !password) ? 0.6 : 1,
-                cursor: (!email || !password) ? "not-allowed" : "pointer",
-                marginTop: "10px"
-              }}
-            >
-              Sign In
-            </button>
           </form>
-
-
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
 
           {/* passkey login buttonn */}
           <button

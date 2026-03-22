@@ -1,54 +1,31 @@
-import { Smartphone, MapPin, LogOut, Monitor, Tablet } from "lucide-react";
+import { useState } from "react";
+import { Smartphone, MapPin, LogOut, Monitor, Tablet, Search } from "lucide-react";
 
-const devicesData = [
-    {
-        id: "DEV-9384",
-        deviceName: "iPhone 13 Pro",
-        deviceType: "Mobile",
-        ipAddress: "192.168.1.45",
-        location: "New York, US",
-        lastActive: "2024-03-04 14:23:11",
-        icon: Smartphone,
-    },
-    {
-        id: "DEV-8271",
-        deviceName: "MacBook Pro",
-        deviceType: "Desktop",
-        ipAddress: "10.0.0.112",
-        location: "San Francisco, US",
-        lastActive: "2024-03-04 10:45:33",
-        icon: Monitor,
-    },
-    {
-        id: "DEV-7156",
-        deviceName: "Windows Desktop",
-        deviceType: "Desktop",
-        ipAddress: "172.16.0.89",
-        location: "Los Angeles, US",
-        lastActive: "2024-03-03 16:22:18",
-        icon: Monitor,
-    },
-    {
-        id: "DEV-6042",
-        deviceName: "Samsung Galaxy Tab",
-        deviceType: "Tablet",
-        ipAddress: "192.168.1.67",
-        location: "Chicago, US",
-        lastActive: "2024-03-02 09:15:47",
-        icon: Tablet,
-    },
-    {
-        id: "DEV-4928",
-        deviceName: "iPad Pro",
-        deviceType: "Tablet",
-        ipAddress: "10.0.0.234",
-        location: "Boston, US",
-        lastActive: "2024-03-01 14:30:22",
-        icon: Tablet,
-    },
-];
+const devicesData = Array.from({ length: 45 }).map((_, i) => ({
+    deviceId: `DEV-${9000 + i}`,
+    deviceName: i % 3 === 0 ? "iPhone 13 Pro" : i % 3 === 1 ? "Samsung Galaxy S24" : "Google Pixel 8",
+    ipAddress: `192.168.1.${10 + i}`,
+    location: i % 3 === 0 ? "Colombo, LK" : i % 3 === 1 ? "Kandy, LK" : "Galle, LK",
+    lastActive: "2024-03-04 14:23:11",
+    icon: Smartphone,
+}));
 
 export function Devices() {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [limit, setLimit] = useState(15);
+
+    const filteredDevices = devicesData.filter(d => 
+        d.deviceId.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const displayedDevices = filteredDevices.slice(0, limit);
+
+    const handleScroll = (e) => {
+        const bottom = e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 50;
+        if (bottom && limit < filteredDevices.length) {
+            setLimit(prev => prev + 10);
+        }
+    };
     return (
         <div className="space-y-6">
             <div>
@@ -58,29 +35,26 @@ export function Devices() {
                 </p>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
-                    <p className="text-sm text-gray-400">Total Devices</p>
-                    <p className="text-2xl font-bold neon-text mt-1">8,472</p>
-                </div>
-                <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
-                    <p className="text-sm text-gray-400">Mobile Devices</p>
-                    <p className="text-2xl font-bold text-[#00C2FF] mt-1">5,234</p>
-                </div>
-                <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
-                    <p className="text-sm text-gray-400">Desktop</p>
-                    <p className="text-2xl font-bold text-[#1E90FF] mt-1">2,891</p>
-                </div>
-                <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
-                    <p className="text-sm text-gray-400">Tablets</p>
-                    <p className="text-2xl font-bold text-[#00FF88] mt-1">347</p>
+            {/* Search */}
+            <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
+                <div className="flex-1 flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20 max-w-md">
+                    <Search size={18} className="text-[#00C2FF]" />
+                    <input
+                        type="text"
+                        placeholder="Search by Device ID..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-transparent border-none outline-none flex-1 text-sm outline-none"
+                    />
                 </div>
             </div>
 
             {/* Devices Table */}
             <div className="glass-panel rounded-xl border border-[#00C2FF]/20 overflow-hidden">
-                <div className="overflow-x-auto">
+                <div 
+                    className="overflow-x-auto max-h-[500px]" 
+                    onScroll={handleScroll}
+                >
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-[#00C2FF]/20 bg-[#00C2FF]/5">
@@ -90,9 +64,7 @@ export function Devices() {
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                                     Device Name
                                 </th>
-                                <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                                    Type
-                                </th>
+
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                                     IP Address
                                 </th>
@@ -108,11 +80,11 @@ export function Devices() {
                             </tr>
                         </thead>
                         <tbody>
-                            {devicesData.map((device) => {
+                            {displayedDevices.map((device, idx) => {
                                 const Icon = device.icon;
                                 return (
-                                    <tr key={device.id} className="table-row">
-                                        <td className="py-4 px-4 text-sm font-mono">{device.id}</td>
+                                    <tr key={`${device.deviceId}-${idx}`} className="table-row">
+                                        <td className="py-4 px-4 text-sm font-mono">{device.deviceId}</td>
                                         <td className="py-4 px-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00C2FF]/20 to-[#1E90FF]/20 flex items-center justify-center">
@@ -121,11 +93,7 @@ export function Devices() {
                                                 <span className="text-sm font-medium">{device.deviceName}</span>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4 text-sm">
-                                            <span className="px-2 py-1 rounded bg-[#00C2FF]/10 text-[#00C2FF] text-xs">
-                                                {device.deviceType}
-                                            </span>
-                                        </td>
+
                                         <td className="py-4 px-4 text-sm font-mono text-gray-400">
                                             {device.ipAddress}
                                         </td>

@@ -28,25 +28,6 @@ export function MFASettings() {
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
             <div className="flex items-center gap-3">
-              <Key size={20} className="text-[#00C2FF]" />
-              <div>
-                <p className="font-semibold">One-Time Password (OTP)</p>
-                <p className="text-sm text-gray-400">SMS and email-based verification codes</p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={otpEnabled}
-                onChange={(e) => setOtpEnabled(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
-            <div className="flex items-center gap-3">
               <Shield size={20} className="text-[#00C2FF]" />
               <div>
                 <p className="font-semibold">Passkeys (WebAuthn)</p>
@@ -66,28 +47,14 @@ export function MFASettings() {
         </div>
       </div>
 
-      {/* OTP Configuration */}
+      {/* Passkey Configuration */}
       <div className="glass-panel p-6 rounded-xl border border-[#00C2FF]/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Clock size={20} className="text-[#00C2FF]" />
-          OTP Configuration
+          Passkey Configuration
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-semibold mb-2">OTP Expiration Time</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={otpExpiration}
-                onChange={(e) => setOtpExpiration(e.target.value)}
-                className="flex-1 bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]"
-              />
-              <span className="text-sm text-gray-400">seconds</span>
-            </div>
-          </div>
-
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">          <div>
             <label className="block text-sm font-semibold mb-2">Max Retry Attempts</label>
             <input
               type="number"

@@ -7,104 +7,101 @@ const authLogsData = [
         timestamp: "2024-03-04 14:23:11",
         userId: "USR-8492",
         userName: "Sarah Mitchell",
-        method: "Passkey",
         status: "Success",
         ipAddress: "192.168.1.45",
-        location: "New York, US",
-        device: "iPhone 13 Pro",
+        location: "Colombo, LK",
     },
     {
         id: "LOG-48922",
         timestamp: "2024-03-04 14:21:45",
         userId: "USR-7341",
         userName: "James Rodriguez",
-        method: "OTP",
         status: "Success",
         ipAddress: "10.0.0.112",
-        location: "San Francisco, US",
-        device: "Chrome - Windows",
+        location: "Kandy, LK",
     },
     {
         id: "LOG-48921",
         timestamp: "2024-03-04 14:19:32",
         userId: "USR-6629",
         userName: "Emily Chen",
-        method: "Passkey",
         status: "Failed",
         ipAddress: "172.16.0.89",
-        location: "Los Angeles, US",
-        device: "Safari - MacOS",
+        location: "Galle, LK",
     },
     {
         id: "LOG-48920",
         timestamp: "2024-03-04 14:18:07",
         userId: "USR-9012",
         userName: "Michael Brown",
-        method: "OTP",
         status: "Success",
         ipAddress: "192.168.1.67",
-        location: "Chicago, US",
-        device: "Android - Samsung",
+        location: "Negombo, LK",
     },
     {
         id: "LOG-48919",
         timestamp: "2024-03-04 14:15:54",
         userId: "USR-4521",
         userName: "Jessica Taylor",
-        method: "Passkey",
         status: "Success",
         ipAddress: "10.0.0.234",
-        location: "Boston, US",
-        device: "Firefox - Linux",
+        location: "Jaffna, LK",
     },
     {
         id: "LOG-48918",
         timestamp: "2024-03-04 14:12:33",
         userId: "USR-3318",
         userName: "David Kim",
-        method: "OTP",
         status: "Failed",
         ipAddress: "192.168.1.123",
-        location: "Seattle, US",
-        device: "Chrome - MacOS",
+        location: "Matara, LK",
     },
     {
         id: "LOG-48917",
         timestamp: "2024-03-04 14:10:18",
         userId: "USR-2207",
         userName: "Amanda White",
-        method: "Passkey",
         status: "Success",
         ipAddress: "172.16.0.45",
-        location: "Miami, US",
-        device: "Edge - Windows",
+        location: "Trincomalee, LK",
     },
     {
         id: "LOG-48916",
         timestamp: "2024-03-04 14:08:22",
         userId: "USR-1156",
         userName: "Robert Garcia",
-        method: "OTP",
         status: "Failed",
         ipAddress: "10.0.0.178",
-        location: "Denver, US",
-        device: "Safari - iOS",
+        location: "Batticaloa, LK",
     },
 ];
 
 export function AuthLogs() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [methodFilter, setMethodFilter] = useState("all");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
+    const [showFilters, setShowFilters] = useState(false);
 
     const filteredLogs = authLogsData.filter((log) => {
         const matchesSearch =
             log.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
             log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.ipAddress.includes(searchTerm);
+            log.timestamp.includes(searchTerm);
         const matchesStatus = statusFilter === "all" || log.status.toLowerCase() === statusFilter;
-        const matchesMethod = methodFilter === "all" || log.method.toLowerCase() === methodFilter;
-        return matchesSearch && matchesStatus && matchesMethod;
+        
+        let matchesDate = true;
+        if (fromDate || toDate) {
+            const logDate = new Date(log.timestamp);
+            if (fromDate && new Date(fromDate) > logDate) matchesDate = false;
+            if (toDate) {
+                const toDateObj = new Date(toDate);
+                toDateObj.setHours(23, 59, 59, 999);
+                if (toDateObj < logDate) matchesDate = false;
+            }
+        }
+        
+        return matchesSearch && matchesStatus && matchesDate;
     });
 
     return (
@@ -155,39 +152,61 @@ export function AuthLogs() {
             </div>
 
             {/* Filters */}
-            <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20">
+            <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20">
                         <Search size={18} className="text-[#00C2FF]" />
                         <input
                             type="text"
-                            placeholder="Search by user ID, name, or IP..."
+                            placeholder="Search by ID, name, or time..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-transparent border-none outline-none flex-1 text-sm"
+                            className="bg-transparent border-none outline-none flex-1 text-sm outline-none"
                         />
                     </div>
-
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20 bg-[#0A0F1C] outline-none text-sm"
+                    <button 
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center gap-2 px-4 py-2 glass-panel rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors"
                     >
-                        <option value="all">All Status</option>
-                        <option value="success">Success</option>
-                        <option value="failed">Failed</option>
-                    </select>
-
-                    <select
-                        value={methodFilter}
-                        onChange={(e) => setMethodFilter(e.target.value)}
-                        className="glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20 bg-[#0A0F1C] outline-none text-sm"
-                    >
-                        <option value="all">All Methods</option>
-                        <option value="otp">OTP</option>
-                        <option value="passkey">Passkey</option>
-                    </select>
+                        <Filter size={18} className="text-[#00C2FF]" />
+                        <span>Filters</span>
+                    </button>
                 </div>
+                {showFilters && (
+                    <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-[#00C2FF]/20">
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm text-gray-400">Status:</label>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+                            >
+                                <option value="all" className="bg-[#0A0F1C]">All Status</option>
+                                <option value="success" className="bg-[#0A0F1C]">Success</option>
+                                <option value="failed" className="bg-[#0A0F1C]">Failed</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm text-gray-400">From:</label>
+                            <input 
+                                type="date" 
+                                value={fromDate}
+                                onChange={(e) => setFromDate(e.target.value)}
+                                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm text-gray-400">To:</label>
+                            <input 
+                                type="date" 
+                                value={toDate}
+                                onChange={(e) => setToDate(e.target.value)}
+                                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Logs Table */}
@@ -197,16 +216,13 @@ export function AuthLogs() {
                         <thead>
                             <tr className="border-b border-[#00C2FF]/20 bg-[#00C2FF]/5">
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                                    Log ID
+                                    User ID
                                 </th>
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                                     Timestamp
                                 </th>
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                                    User
-                                </th>
-                                <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                                    Method
+                                    Name
                                 </th>
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                                     Status
@@ -217,28 +233,17 @@ export function AuthLogs() {
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                                     Location
                                 </th>
-                                <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                                    Device
-                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredLogs.map((log) => (
                                 <tr key={log.id} className="table-row">
-                                    <td className="py-4 px-4 text-sm font-mono">{log.id}</td>
+                                    <td className="py-4 px-4 text-sm font-mono">{log.userId}</td>
                                     <td className="py-4 px-4 text-sm font-mono text-gray-400">
                                         {log.timestamp}
                                     </td>
                                     <td className="py-4 px-4">
-                                        <div>
-                                            <p className="text-sm font-medium">{log.userName}</p>
-                                            <p className="text-xs text-gray-400 font-mono">{log.userId}</p>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-4 text-sm">
-                                        <span className="px-2 py-1 rounded bg-[#00C2FF]/10 text-[#00C2FF] text-xs">
-                                            {log.method}
-                                        </span>
+                                        <div className="text-sm font-medium">{log.userName}</div>
                                     </td>
                                     <td className="py-4 px-4 text-sm">
                                         <span
@@ -259,7 +264,6 @@ export function AuthLogs() {
                                         {log.ipAddress}
                                     </td>
                                     <td className="py-4 px-4 text-sm text-gray-400">{log.location}</td>
-                                    <td className="py-4 px-4 text-sm text-gray-400">{log.device}</td>
                                 </tr>
                             ))}
                         </tbody>

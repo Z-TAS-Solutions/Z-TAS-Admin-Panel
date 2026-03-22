@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Eye, EyeOff, Fingerprint, ShieldAlert, AlertCircle } from "lucide-react";
+import { Fingerprint, ShieldAlert, AlertCircle } from "lucide-react";
 
 export function Register() {
   const navigate = useNavigate();
@@ -8,10 +8,8 @@ export function Register() {
     fullName: "",
     nic: "",
     email: "",
-    password: "",
     phone: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [syncedPasskeys, setSyncedPasskeys] = useState(false);
   const [error, setError] = useState("");
 
@@ -157,33 +155,6 @@ export function Register() {
               </div>
             </div>
 
-            {/* Password */}
-            <div className="auth-field">
-              <label htmlFor="reg-password">Password</label>
-              <div className="auth-input-wrapper">
-                <input
-                  id="reg-password"
-                  type={showPassword ? "text" : "password"}
-                  className="auth-input"
-                  placeholder="Create a strong password"
-                  value={form.password}
-                  onChange={update("password")}
-                  required
-                  autoComplete="new-password"
-                  aria-label="Password"
-                  style={{ paddingRight: 44 }}
-                />
-                <button
-                  type="button"
-                  className="auth-password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
             {/* Phone */}
             <div className="auth-field">
               <label htmlFor="reg-phone">Phone Number</label>
@@ -254,7 +225,7 @@ export function Register() {
               }}
               disabled={Object.values(form).some(v => !v.trim())}
             >
-              Create Account
+              Create Passkey
             </button>
           </form>
 

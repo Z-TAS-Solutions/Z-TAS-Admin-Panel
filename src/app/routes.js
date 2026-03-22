@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { AdminLayout } from "./components/admin-layout";
 import { Dashboard } from "./pages/dashboard";
-import { Passkeys } from "./pages/passkeys";
+
 import { MFASettings } from "./pages/mfa-settings";
 import { Analytics } from "./pages/analytics";
 import { Users } from "./pages/users";
@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
       { index: true, Component: Dashboard },
       { path: "auth-logs", Component: AuthLogs },
       { path: "devices", Component: Devices },
-      { path: "passkeys", Component: Passkeys },
+
       { path: "mfa-settings", Component: MFASettings },
       { path: "analytics", Component: Analytics },
       { path: "users", Component: Users },
