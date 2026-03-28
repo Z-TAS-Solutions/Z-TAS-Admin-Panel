@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Filter, Eye, Lock, Unlock, CheckCircle2, XCircle } from "lucide-react";
+<<<<<<< Updated upstream
 
 const usersData = [
   {
@@ -85,6 +86,19 @@ const usersData = [
 ];
 
 export function Users() {
+=======
+import { useNavigate } from "react-router";
+import { usersService } from "../../services/users";
+
+export function Users() {
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+
+>>>>>>> Stashed changes
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -124,7 +138,10 @@ export function Users() {
             Manage user accounts, MFA settings, and access control
           </p>
         </div>
-        <button className="gradient-button px-6 py-2 rounded-lg text-white font-semibold">
+        <button 
+          onClick={() => navigate('/dashboard/user-enrollment')}
+          className="gradient-button px-6 py-2 rounded-lg text-white font-semibold"
+        >
           Add New User
         </button>
       </div>

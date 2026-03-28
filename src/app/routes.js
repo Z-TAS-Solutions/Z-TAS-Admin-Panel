@@ -11,6 +11,7 @@ import { AuthLogs } from "./pages/auth-logs";
 import { Devices } from "./pages/devices";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
+import { UserEnrollment } from "./pages/user-enrollment";
 
 export const router = createBrowserRouter([
   { path: "/", Component: Login },
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: "mfa-settings", Component: MFASettings },
       { path: "analytics", Component: Analytics },
       { path: "users", Component: Users },
+      { path: "user-enrollment", Component: UserEnrollment },
       { path: "settings", Component: Settings },
       { path: "alerts", Component: Alerts },
     ],
