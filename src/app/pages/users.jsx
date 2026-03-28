@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Eye, Lock, Unlock, CheckCircle2, XCircle } from "lucide-react";
-<<<<<<< HEAD
+import { useNavigate } from "react-router";
 import { usersService } from "../../services/users";
-
-export function Users() {
-=======
-<<<<<<< Updated upstream
 
 const usersData = [
   {
@@ -91,23 +87,14 @@ const usersData = [
 ];
 
 export function Users() {
-=======
-import { useNavigate } from "react-router";
-import { usersService } from "../../services/users";
-
-export function Users() {
   const navigate = useNavigate();
->>>>>>> rafa
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
 
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
->>>>>>> rafa
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -124,7 +111,7 @@ export function Users() {
           limit,
           offset: (page - 1) * limit,
         };
-        
+
         if (searchTerm) params.search = searchTerm;
         if (filterStatus !== "all") params.status = filterStatus;
         if (fromDate) params.lastLoginFrom = new Date(fromDate).toISOString();
@@ -157,11 +144,11 @@ export function Users() {
   const handleToggleLock = async (user) => {
     // If active, we block it (locked: true). If inactive, we restore (locked: false).
     const willLock = user.status === "active";
-    
+
     // Optimistic UI update
-    setUsers(prev => prev.map(u => 
-      u.userId === user.userId 
-        ? { ...u, status: willLock ? "inactive" : "active" } 
+    setUsers(prev => prev.map(u =>
+      u.userId === user.userId
+        ? { ...u, status: willLock ? "inactive" : "active" }
         : u
     ));
     if (selectedUser && selectedUser.userId === user.userId) {
@@ -173,9 +160,9 @@ export function Users() {
         await usersService.updateLockStatus(user.userId, willLock);
       } else {
         // Revert on cancel
-        setUsers(prev => prev.map(u => 
-          u.userId === user.userId 
-            ? { ...u, status: user.status } 
+        setUsers(prev => prev.map(u =>
+          u.userId === user.userId
+            ? { ...u, status: user.status }
             : u
         ));
         if (selectedUser && selectedUser.userId === user.userId) setSelectedUser({ ...selectedUser, status: user.status });
@@ -183,9 +170,9 @@ export function Users() {
     } catch (error) {
       console.error("Failed to update user lock status", error);
       // Revert on error
-      setUsers(prev => prev.map(u => 
-        u.userId === user.userId 
-          ? { ...u, status: user.status } 
+      setUsers(prev => prev.map(u =>
+        u.userId === user.userId
+          ? { ...u, status: user.status }
           : u
       ));
       if (selectedUser && selectedUser.userId === user.userId) setSelectedUser({ ...selectedUser, status: user.status });
@@ -203,7 +190,7 @@ export function Users() {
             Manage user accounts, MFA settings, and access control
           </p>
         </div>
-        <button 
+        <button
           onClick={() => navigate('/dashboard/user-enrollment')}
           className="gradient-button px-6 py-2 rounded-lg text-white font-semibold"
         >
@@ -331,8 +318,8 @@ export function Users() {
                     <td className="py-4 px-4 text-sm">
                       <span
                         className={`px-2 py-1 rounded text-xs ${user.status === "active"
-                            ? "bg-[#00FF88]/10 text-[#00FF88]"
-                            : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
+                          ? "bg-[#00FF88]/10 text-[#00FF88]"
+                          : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
                           }`}
                       >
                         {user.status === "active" ? "Active" : "Inactive"}
@@ -375,14 +362,14 @@ export function Users() {
             Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} users
           </span>
           <div className="flex gap-2">
-            <button 
+            <button
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
               className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
             >
               Previous
             </button>
-            <button 
+            <button
               disabled={page * limit >= total}
               onClick={() => setPage(p => p + 1)}
               className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
@@ -455,7 +442,7 @@ export function Users() {
                 >
                   Close
                 </button>
-                <button 
+                <button
                   onClick={() => handleToggleLock(selectedUser)}
                   className="px-4 py-2 rounded-lg border border-[#FFB800] text-[#FFB800] hover:bg-[#FFB800]/10 transition-colors"
                 >
