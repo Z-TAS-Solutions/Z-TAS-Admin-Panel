@@ -1,14 +1,113 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Eye, Lock, Unlock, CheckCircle2, XCircle } from "lucide-react";
+<<<<<<< HEAD
 import { usersService } from "../../services/users";
 
 export function Users() {
+=======
+<<<<<<< Updated upstream
+
+const usersData = [
+  {
+    id: "USR-8492",
+    name: "Sarah Mitchell",
+    email: "sarah.mitchell@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: true,
+    passkeyStatus: "Active",
+    lastLogin: "2024-03-04 14:23:11",
+    status: "active",
+  },
+  {
+    id: "USR-7341",
+    name: "James Rodriguez",
+    email: "james.r@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: true,
+    passkeyStatus: "Active",
+    lastLogin: "2024-03-04 13:45:22",
+    status: "active",
+  },
+  {
+    id: "USR-6629",
+    name: "Emily Chen",
+    email: "emily.chen@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: false,
+    passkeyStatus: "Inactive",
+    lastLogin: "2024-03-03 09:12:45",
+    status: "active",
+  },
+  {
+    id: "USR-9012",
+    name: "Michael Brown",
+    email: "m.brown@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: true,
+    passkeyStatus: "Active",
+    lastLogin: "2024-03-04 11:30:18",
+    status: "active",
+  },
+  {
+    id: "USR-4521",
+    name: "Jessica Taylor",
+    email: "j.taylor@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: true,
+    passkeyStatus: "Inactive",
+    lastLogin: "2024-03-02 16:55:33",
+    status: "inactive",
+  },
+  {
+    id: "USR-3318",
+    name: "David Kim",
+    email: "david.kim@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: false,
+    passkeyStatus: "Inactive",
+    lastLogin: "2024-03-04 08:20:11",
+    status: "active",
+  },
+  {
+    id: "USR-2207",
+    name: "Amanda White",
+    email: "a.white@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: true,
+    passkeyStatus: "Active",
+    lastLogin: "2024-03-04 10:45:29",
+    status: "active",
+  },
+  {
+    id: "USR-1156",
+    name: "Robert Garcia",
+    email: "robert.g@gmail.com",
+    phone: "+94 771234567",
+    mfaEnabled: true,
+    passkeyStatus: "Active",
+    lastLogin: "2024-03-01 14:15:42",
+    status: "active",
+  },
+];
+
+export function Users() {
+=======
+import { useNavigate } from "react-router";
+import { usersService } from "../../services/users";
+
+export function Users() {
+  const navigate = useNavigate();
+>>>>>>> rafa
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
 
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> rafa
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -104,7 +203,10 @@ export function Users() {
             Manage user accounts, MFA settings, and access control
           </p>
         </div>
-        <button className="gradient-button px-6 py-2 rounded-lg text-white font-semibold">
+        <button 
+          onClick={() => navigate('/dashboard/user-enrollment')}
+          className="gradient-button px-6 py-2 rounded-lg text-white font-semibold"
+        >
           Add New User
         </button>
       </div>
