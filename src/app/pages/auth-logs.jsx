@@ -102,7 +102,7 @@ export function AuthLogs() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
                     <div className="flex items-center gap-2 mb-2">
                         <CheckCircle2 size={18} className="text-[#00FF88]" />
@@ -123,13 +123,6 @@ export function AuthLogs() {
                         <p className="text-sm text-gray-400">Avg Response Time</p>
                     </div>
                     <p className="text-2xl font-bold neon-text">{latency}</p>
-                </div>
-                <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Filter size={18} className="text-[#FFB800]" />
-                        <p className="text-sm text-gray-400">Suspicious</p>
-                    </div>
-                    <p className="text-2xl font-bold text-[#FFB800]">{analytics ? analytics.suspicious_activities.toLocaleString() : "..."}</p>
                 </div>
             </div>
 

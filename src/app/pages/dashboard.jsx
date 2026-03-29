@@ -10,6 +10,7 @@ import {
   Fingerprint,
   AlertTriangle,
   TrendingUp,
+  BarChart3,
 } from "lucide-react";
 import {
   LineChart,
@@ -23,11 +24,22 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  BarChart,
+  Bar,
 } from "recharts";
 
 const authTrendData = [];
 
 const recentActivity = [];
+
+const monthlyData = [
+  { month: "Jan", users: 8234, auths: 45678, failures: 234 },
+  { month: "Feb", users: 9456, auths: 52341, failures: 189 },
+  { month: "Mar", users: 10892, auths: 61234, failures: 156 },
+  { month: "Apr", users: 11234, auths: 67892, failures: 203 },
+  { month: "May", users: 11789, auths: 71456, failures: 178 },
+  { month: "Jun", users: 12847, auths: 78234, failures: 145 },
+];
 
 const StatCard = ({ title, value, icon: Icon, trend, trendValue }) => (
   <div className="glass-panel p-6 rounded-xl border border-[#00C2FF]/20 stat-card">
@@ -71,7 +83,7 @@ export function Dashboard() {
         ]);
         console.log("Analytics:", analyticsRes);
         setAnalytics(analyticsRes);
-        
+
         // Format auth trends for recharts
         const formattedTrends = (trendsRes.data || []).map(item => ({
           time: new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -123,14 +135,6 @@ export function Dashboard() {
           value={analytics ? `${analytics.successRate}%` : "..."}
           icon={CheckCircle2}
         />
-        <StatCard
-          title="Suspicious Activity"
-          value={analytics ? analytics.suspiciousActivity.toLocaleString() : "..."}
-          icon={AlertTriangle}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Average Response Time" value={latency} icon={Activity} />
       </div>
 
@@ -144,40 +148,66 @@ export function Dashboard() {
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             {loading ? (
-               <div className="flex items-center justify-center h-full text-gray-400">Loading chart...</div>
+              <div className="flex items-center justify-center h-full text-gray-400">Loading chart...</div>
             ) : (
-            <LineChart data={authTrends}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#00C2FF20" />
-              <XAxis dataKey="time" stroke="#ffffff60" />
-              <YAxis stroke="#ffffff60" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#0A0F1C",
-                  border: "1px solid #00C2FF40",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="successful"
-                stroke="#00FF88"
-                strokeWidth={2}
-                dot={{ fill: "#00FF88", r: 4 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="failed"
-                stroke="#FF3B5C"
-                strokeWidth={2}
-                dot={{ fill: "#FF3B5C", r: 4 }}
-              />
-            </LineChart>
+              <LineChart data={authTrends}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#00C2FF20" />
+                <XAxis dataKey="time" stroke="#ffffff60" />
+                <YAxis stroke="#ffffff60" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#0A0F1C",
+                    border: "1px solid #00C2FF40",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="successful"
+                  stroke="#00FF88"
+                  strokeWidth={2}
+                  dot={{ fill: "#00FF88", r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="failed"
+                  stroke="#FF3B5C"
+                  strokeWidth={2}
+                  dot={{ fill: "#FF3B5C", r: 4 }}
+                />
+              </LineChart>
             )}
           </ResponsiveContainer>
         </div>
 
 
+      </div>
+
+      {/* Monthly Overview */}
+      <div className="glass-panel p-6 rounded-xl border border-[#00C2FF]/20 mb-6">
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <BarChart3 size={20} className="text-[#00C2FF]" />
+          Monthly Overview
+        </h2>
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#00C2FF20" />
+            <XAxis dataKey="month" stroke="#ffffff60" />
+            <YAxis stroke="#ffffff60" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#0A0F1C",
+                border: "1px solid #00C2FF40",
+                borderRadius: "8px",
+              }}
+            />
+            <Legend />
+            <Bar dataKey="users" fill="#00C2FF" name="Total Users" />
+            <Bar dataKey="auths" fill="#00FF88" name="Authentications" />
+            <Bar dataKey="failures" fill="#FF3B5C" name="Failures" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Recent Activity Table */}
@@ -223,8 +253,8 @@ export function Dashboard() {
                     <td className="py-3 px-4 text-sm">
                       <span
                         className={`px-2 py-1 rounded text-xs ${activity.status === "success"
-                            ? "bg-[#00FF88]/10 text-[#00FF88]"
-                            : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
+                          ? "bg-[#00FF88]/10 text-[#00FF88]"
+                          : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
                           }`}
                       >
                         {activity.status}

@@ -17,13 +17,10 @@ import { useState } from "react";
 
 const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-
     { path: "/dashboard/users", label: "Users", icon: Users },
     { path: "/dashboard/devices", label: "Devices", icon: Smartphone },
-    { path: "/dashboard/alerts", label: "Alerts", icon: Bell },
     { path: "/dashboard/settings", label: "Settings", icon: Settings },
     { path: "/dashboard/mfa-settings", label: "MFA Settings", icon: Settings },
-    { path: "/dashboard/analytics", label: "System Analytics", icon: BarChart3 },
     { path: "/dashboard/auth-logs", label: "Authentication Logs", icon: ShieldCheck },
 ];
 
@@ -58,29 +55,12 @@ export function AdminLayout() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Search Bar */}
-                        <div className="hidden md:flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20">
-                            <Search size={16} className="text-[#00C2FF]" />
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="bg-transparent border-none outline-none w-48 text-sm"
-                            />
-                        </div>
-
-                        {/* Notification Bell */}
-                        <button className="relative p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors">
-                            <Bell size={20} className="text-[#00C2FF]" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-[#FF3B5C] rounded-full"></span>
-                        </button>
-
                         {/* Admin Profile */}
                         <button className="flex items-center gap-2 glass-panel px-3 py-2 rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00C2FF] to-[#1E90FF] flex items-center justify-center text-xs font-semibold">
                                 SA
                             </div>
                             <span className="hidden md:inline text-sm">Super Admin</span>
-                            <ChevronDown size={16} />
                         </button>
                     </div>
                 </div>
