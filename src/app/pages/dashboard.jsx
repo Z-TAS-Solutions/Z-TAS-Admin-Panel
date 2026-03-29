@@ -119,9 +119,9 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
-          title="Total Registered Users"
+          title="Total Users"
           value={analytics ? analytics.totalUsers.toLocaleString() : "..."}
           icon={Users}
         />
@@ -135,7 +135,12 @@ export function Dashboard() {
           value={analytics ? `${analytics.successRate}%` : "..."}
           icon={CheckCircle2}
         />
-        <StatCard title="Average Response Time" value={latency} icon={Activity} />
+        <StatCard
+          title="Suspicious Activity"
+          value={analytics ? analytics.suspiciousActivity.toLocaleString() : "..."}
+          icon={AlertTriangle}
+        />
+        <StatCard title="Avg Response Time" value={latency} icon={Activity} />
       </div>
 
       {/* Charts Section */}
@@ -226,7 +231,9 @@ export function Dashboard() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-[#00C2FF]">
                   Device
                 </th>
-
+                <th className="text-left py-3 px-4 text-sm font-semibold text-[#00C2FF]">
+                  Method
+                </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-[#00C2FF]">
                   Status
                 </th>
@@ -238,18 +245,18 @@ export function Dashboard() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-4 text-gray-400">Loading recent activity...</td>
+                  <td colSpan="5" className="text-center py-4 text-gray-400">Loading recent activity...</td>
                 </tr>
               ) : recentAuth.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-4 text-gray-400">No recent activity</td>
+                  <td colSpan="5" className="text-center py-4 text-gray-400">No recent activity</td>
                 </tr>
               ) : (
                 recentAuth.map((activity, index) => (
                   <tr key={index} className="table-row">
                     <td className="py-3 px-4 text-sm font-mono">{activity.userId}</td>
                     <td className="py-3 px-4 text-sm">{activity.device}</td>
-
+                    <td className="py-3 px-4 text-sm capitalize">{activity.method}</td>
                     <td className="py-3 px-4 text-sm">
                       <span
                         className={`px-2 py-1 rounded text-xs ${activity.status === "success"
