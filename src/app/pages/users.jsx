@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, Eye, Lock, Unlock, CheckCircle2, XCircle } from "lucide-react";
+import { useNavigate } from "react-router";
+import { usersService } from "../../services/users";
 
 const usersData = [
   {
     id: "USR-8492",
     name: "Sarah Mitchell",
-    email: "sarah.mitchell@company.com",
-    phone: "+1 (555) 123-4567",
+    email: "sarah.mitchell@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 14:23:11",
@@ -15,8 +17,8 @@ const usersData = [
   {
     id: "USR-7341",
     name: "James Rodriguez",
-    email: "james.r@company.com",
-    phone: "+1 (555) 234-5678",
+    email: "james.r@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 13:45:22",
@@ -25,8 +27,8 @@ const usersData = [
   {
     id: "USR-6629",
     name: "Emily Chen",
-    email: "emily.chen@company.com",
-    phone: "+1 (555) 345-6789",
+    email: "emily.chen@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: false,
     passkeyStatus: "Inactive",
     lastLogin: "2024-03-03 09:12:45",
@@ -35,8 +37,8 @@ const usersData = [
   {
     id: "USR-9012",
     name: "Michael Brown",
-    email: "m.brown@company.com",
-    phone: "+1 (555) 456-7890",
+    email: "m.brown@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 11:30:18",
@@ -45,18 +47,18 @@ const usersData = [
   {
     id: "USR-4521",
     name: "Jessica Taylor",
-    email: "j.taylor@company.com",
-    phone: "+1 (555) 567-8901",
+    email: "j.taylor@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Inactive",
     lastLogin: "2024-03-02 16:55:33",
-    status: "locked",
+    status: "inactive",
   },
   {
     id: "USR-3318",
     name: "David Kim",
-    email: "david.kim@company.com",
-    phone: "+1 (555) 678-9012",
+    email: "david.kim@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: false,
     passkeyStatus: "Inactive",
     lastLogin: "2024-03-04 08:20:11",
@@ -65,8 +67,8 @@ const usersData = [
   {
     id: "USR-2207",
     name: "Amanda White",
-    email: "a.white@company.com",
-    phone: "+1 (555) 789-0123",
+    email: "a.white@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-04 10:45:29",
@@ -75,8 +77,8 @@ const usersData = [
   {
     id: "USR-1156",
     name: "Robert Garcia",
-    email: "robert.g@company.com",
-    phone: "+1 (555) 890-1234",
+    email: "robert.g@gmail.com",
+    phone: "+94 771234567",
     mfaEnabled: true,
     passkeyStatus: "Active",
     lastLogin: "2024-03-01 14:15:42",
@@ -85,15 +87,98 @@ const usersData = [
 ];
 
 export function Users() {
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
-  const filteredUsers = usersData.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fetch users when filters or pagination changes
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const params = {
+          limit,
+          offset: (page - 1) * limit,
+        };
+
+        if (searchTerm) params.search = searchTerm;
+        if (filterStatus !== "all") params.status = filterStatus;
+        if (fromDate) params.lastLoginFrom = new Date(fromDate).toISOString();
+        if (toDate) {
+          const endDate = new Date(toDate);
+          endDate.setHours(23, 59, 59, 999);
+          params.lastLoginTo = endDate.toISOString();
+        }
+
+        const response = await usersService.getUsers(params);
+        if (response) {
+          setUsers(response.data || []);
+          setTotal(response.total || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch users", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Quick debounce for search term
+    const timeoutId = setTimeout(() => {
+      fetchUsers();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, filterStatus, fromDate, toDate, page, limit]);
+
+  const handleToggleLock = async (user) => {
+    // If active, we block it (locked: true). If inactive, we restore (locked: false).
+    const willLock = user.status === "active";
+
+    // Optimistic UI update
+    setUsers(prev => prev.map(u =>
+      u.userId === user.userId
+        ? { ...u, status: willLock ? "inactive" : "active" }
+        : u
+    ));
+    if (selectedUser && selectedUser.userId === user.userId) {
+      setSelectedUser({ ...selectedUser, status: willLock ? "inactive" : "active" });
+    }
+
+    try {
+      if (window.confirm(`Are you sure you want to ${willLock ? "lock" : "unlock"} this user?`)) {
+        await usersService.updateLockStatus(user.userId, willLock);
+      } else {
+        // Revert on cancel
+        setUsers(prev => prev.map(u =>
+          u.userId === user.userId
+            ? { ...u, status: user.status }
+            : u
+        ));
+        if (selectedUser && selectedUser.userId === user.userId) setSelectedUser({ ...selectedUser, status: user.status });
+      }
+    } catch (error) {
+      console.error("Failed to update user lock status", error);
+      // Revert on error
+      setUsers(prev => prev.map(u =>
+        u.userId === user.userId
+          ? { ...u, status: user.status }
+          : u
+      ));
+      if (selectedUser && selectedUser.userId === user.userId) setSelectedUser({ ...selectedUser, status: user.status });
+      alert("Failed to update user lock status.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -105,13 +190,16 @@ export function Users() {
             Manage user accounts, MFA settings, and access control
           </p>
         </div>
-        <button className="gradient-button px-6 py-2 rounded-lg text-white font-semibold">
+        <button
+          onClick={() => navigate('/dashboard/user-enrollment')}
+          className="gradient-button px-6 py-2 rounded-lg text-white font-semibold"
+        >
           Add New User
         </button>
       </div>
 
       {/* Search and Filters */}
-      <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20">
+      <div className="glass-panel p-4 rounded-xl border border-[#00C2FF]/20 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 flex items-center gap-2 glass-panel px-4 py-2 rounded-lg border border-[#00C2FF]/20">
             <Search size={18} className="text-[#00C2FF]" />
@@ -123,11 +211,48 @@ export function Users() {
               className="bg-transparent border-none outline-none flex-1"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 glass-panel rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2 glass-panel rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors"
+          >
             <Filter size={18} className="text-[#00C2FF]" />
             <span>Filters</span>
           </button>
         </div>
+        {showFilters && (
+          <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-[#00C2FF]/20">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-400">Status:</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+              >
+                <option value="all" className="bg-[#0A0F1C]">All</option>
+                <option value="active" className="bg-[#0A0F1C]">Active</option>
+                <option value="inactive" className="bg-[#0A0F1C]">Inactive</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-400">From:</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-400">To:</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="bg-transparent border border-[#00C2FF]/20 rounded-lg px-3 py-1.5 text-sm outline-none text-[#00C2FF]"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Users Table */}
@@ -151,9 +276,7 @@ export function Users() {
                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                   MFA
                 </th>
-                <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                  Passkey
-                </th>
+
                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                   Last Login
                 </th>
@@ -166,71 +289,96 @@ export function Users() {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="table-row">
-                  <td className="py-4 px-4 text-sm font-mono">{user.id}</td>
-                  <td className="py-4 px-4 text-sm font-medium">{user.name}</td>
-                  <td className="py-4 px-4 text-sm text-gray-400">{user.email}</td>
-                  <td className="py-4 px-4 text-sm text-gray-400">{user.phone}</td>
-                  <td className="py-4 px-4 text-sm">
-                    {user.mfaEnabled ? (
-                      <CheckCircle2 size={18} className="text-[#00FF88]" />
-                    ) : (
-                      <XCircle size={18} className="text-gray-500" />
-                    )}
-                  </td>
-                  <td className="py-4 px-4 text-sm">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        user.passkeyStatus === "Active"
-                          ? "bg-[#00FF88]/10 text-[#00FF88]"
-                          : "bg-gray-500/10 text-gray-500"
-                      }`}
-                    >
-                      {user.passkeyStatus}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-sm text-gray-400 font-mono">
-                    {user.lastLogin}
-                  </td>
-                  <td className="py-4 px-4 text-sm">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        user.status === "active"
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-gray-400">Loading users...</td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-gray-400">No users found.</td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.userId} className="table-row">
+                    <td className="py-4 px-4 text-sm font-mono">{user.userId}</td>
+                    <td className="py-4 px-4 text-sm font-medium">{user.name}</td>
+                    <td className="py-4 px-4 text-sm text-gray-400">{user.email || "-"}</td>
+                    <td className="py-4 px-4 text-sm text-gray-400">{user.phone || "-"}</td>
+                    <td className="py-4 px-4 text-sm">
+                      {user.mfaEnabled ? (
+                        <CheckCircle2 size={18} className="text-[#00FF88]" />
+                      ) : (
+                        <XCircle size={18} className="text-gray-500" />
+                      )}
+                    </td>
+
+                    <td className="py-4 px-4 text-sm text-gray-400 font-mono">
+                      {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : "Never"}
+                    </td>
+                    <td className="py-4 px-4 text-sm">
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${user.status === "active"
                           ? "bg-[#00FF88]/10 text-[#00FF88]"
                           : "bg-[#FF3B5C]/10 text-[#FF3B5C]"
-                      }`}
-                    >
-                      {user.status === "active" ? "Active" : "Locked"}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setSelectedUser(user)}
-                        className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
-                        title="View Details"
+                          }`}
                       >
-                        <Eye size={16} className="text-[#00C2FF]" />
-                      </button>
-                      <button
-                        className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
-                        title={user.status === "active" ? "Lock Account" : "Unlock Account"}
-                      >
-                        {user.status === "active" ? (
-                          <Lock size={16} className="text-[#FFB800]" />
-                        ) : (
-                          <Unlock size={16} className="text-[#00FF88]" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {user.status === "active" ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedUser(user)}
+                          className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={16} className="text-[#00C2FF]" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleLock(user)}
+                          className="p-2 hover:bg-[#00C2FF]/10 rounded-lg transition-colors"
+                          title={user.status === "active" ? "Deactivate Account" : "Activate Account"}
+                        >
+                          {user.status === "active" ? (
+                            <Lock size={16} className="text-[#FFB800]" />
+                          ) : (
+                            <Unlock size={16} className="text-[#00FF88]" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && total > limit && (
+        <div className="flex items-center justify-between mt-4">
+          <span className="text-sm text-gray-400">
+            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} users
+          </span>
+          <div className="flex gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+              className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              disabled={page * limit >= total}
+              onClick={() => setPage(p => p + 1)}
+              className="px-3 py-1 rounded border border-[#00C2FF]/20 text-[#00C2FF] disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* User Detail Modal */}
       {selectedUser && (
@@ -243,17 +391,17 @@ export function Users() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl font-bold neon-text mb-6">User Profile</h2>
-            
+
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-400">User ID</p>
-                  <p className="font-mono text-[#00C2FF]">{selectedUser.id}</p>
+                  <p className="font-mono text-[#00C2FF]">{selectedUser.userId}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Status</p>
                   <p className={selectedUser.status === "active" ? "text-[#00FF88]" : "text-[#FF3B5C]"}>
-                    {selectedUser.status === "active" ? "Active" : "Locked"}
+                    {selectedUser.status === "active" ? "Active" : "Inactive"}
                   </p>
                 </div>
                 <div>
@@ -262,15 +410,15 @@ export function Users() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
-                  <p className="text-sm">{selectedUser.email}</p>
+                  <p className="text-sm">{selectedUser.email || "-"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Phone</p>
-                  <p>{selectedUser.phone}</p>
+                  <p>{selectedUser.phone || "-"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Last Login</p>
-                  <p className="text-sm font-mono">{selectedUser.lastLogin}</p>
+                  <p className="text-sm font-mono">{selectedUser.lastLogin ? new Date(selectedUser.lastLogin).toLocaleString() : "Never"}</p>
                 </div>
               </div>
 
@@ -283,12 +431,7 @@ export function Users() {
                       {selectedUser.mfaEnabled ? "Yes" : "No"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Passkey Status</span>
-                    <span className={selectedUser.passkeyStatus === "Active" ? "text-[#00FF88]" : "text-gray-500"}>
-                      {selectedUser.passkeyStatus}
-                    </span>
-                  </div>
+
                 </div>
               </div>
 
@@ -299,8 +442,11 @@ export function Users() {
                 >
                   Close
                 </button>
-                <button className="px-4 py-2 rounded-lg border border-[#FFB800] text-[#FFB800] hover:bg-[#FFB800]/10 transition-colors">
-                  {selectedUser.status === "active" ? "Lock Account" : "Unlock Account"}
+                <button
+                  onClick={() => handleToggleLock(selectedUser)}
+                  className="px-4 py-2 rounded-lg border border-[#FFB800] text-[#FFB800] hover:bg-[#FFB800]/10 transition-colors"
+                >
+                  {selectedUser.status === "active" ? "Deactivate Account" : "Activate Account"}
                 </button>
               </div>
             </div>

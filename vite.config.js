@@ -8,6 +8,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    port: 8080
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

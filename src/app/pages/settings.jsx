@@ -120,7 +120,7 @@ export function Settings() {
             </label>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-sm font-semibold mb-2">Session Timeout</label>
               <select className="w-full bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]">
@@ -128,14 +128,6 @@ export function Settings() {
                 <option>30 minutes</option>
                 <option>1 hour</option>
                 <option>4 hours</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Password Policy</label>
-              <select className="w-full bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]">
-                <option>Standard (8+ chars)</option>
-                <option>Strong (12+ chars, mixed)</option>
-                <option>Very Strong (16+ chars, special)</option>
               </select>
             </div>
           </div>
@@ -150,31 +142,21 @@ export function Settings() {
         </h2>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
-            <div className="flex items-center gap-3">
-              <Database size={20} className="text-[#00C2FF]" />
-              <div>
-                <p className="font-semibold">Automatic Backup</p>
-                <p className="text-sm text-gray-400">Daily automated database backups</p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={autoBackup}
-                onChange={(e) => setAutoBackup(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
-            </label>
-          </div>
-
           <div className="flex gap-4">
-            <button className="px-6 py-2 rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors">
-              Create Backup Now
-            </button>
-            <button className="px-6 py-2 rounded-lg border border-[#00C2FF]/20 hover:bg-[#00C2FF]/10 transition-colors">
-              Restore from Backup
+            <button 
+              className="gradient-button px-6 py-2 rounded-lg font-semibold flex items-center gap-2" 
+              onClick={() => {
+                const csvContent = "data:text/csv;charset=utf-8,ID,Name,Type\n1,System,Data";
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "system_backup.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+            >
+              Download Full CSV Data
             </button>
           </div>
         </div>

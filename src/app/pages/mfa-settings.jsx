@@ -1,13 +1,44 @@
 import { Shield, Key, Clock, Lock, Settings as SettingsIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { securityService } from "../../services/security";
 
 export function MFASettings() {
-  const [otpEnabled, setOtpEnabled] = useState(true);
   const [passkeyEnabled, setPasskeyEnabled] = useState(true);
-  const [otpExpiration, setOtpExpiration] = useState("300");
   const [maxRetries, setMaxRetries] = useState("3");
   const [lockoutDuration, setLockoutDuration] = useState("30");
   const [enforceMFA, setEnforceMFA] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const handleEnforceMFAToggle = async (checked) => {
+    // Optimistic update
+    setEnforceMFA(checked);
+
+    if (window.confirm(`Are you sure you want to ${checked ? "enforce" : "disable"} MFA globally for all users? This is a high impact action.`)) {
+      try {
+        await securityService.updateMfaEnforcement(checked);
+        // Success
+      } catch (error) {
+        if (error?.response?.status !== 409) {
+          console.error("Failed to update MFA enforcement", error);
+          // Revert on error
+          setEnforceMFA(!checked);
+          alert("Failed to update MFA settings.");
+        }
+      }
+    } else {
+      // User cancelled, revert optimistic update
+      setEnforceMFA(!checked);
+    }
+  };
+
+  const handleSaveAll = () => {
+    // Mock save for other settings not yet covered by explicit APIs
+    setSaving(true);
+    setTimeout(() => {
+      setSaving(false);
+      alert("Settings saved successfully.");
+    }, 1000);
+  };
 
   return (
     <div className="space-y-6">
@@ -26,25 +57,6 @@ export function MFASettings() {
         </h2>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
-            <div className="flex items-center gap-3">
-              <Key size={20} className="text-[#00C2FF]" />
-              <div>
-                <p className="font-semibold">One-Time Password (OTP)</p>
-                <p className="text-sm text-gray-400">SMS and email-based verification codes</p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={otpEnabled}
-                onChange={(e) => setOtpEnabled(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
-            </label>
-          </div>
-
           <div className="flex items-center justify-between p-4 glass-panel rounded-lg border border-[#00C2FF]/20">
             <div className="flex items-center gap-3">
               <Shield size={20} className="text-[#00C2FF]" />
@@ -66,28 +78,14 @@ export function MFASettings() {
         </div>
       </div>
 
-      {/* OTP Configuration */}
+      {/* Passkey Configuration */}
       <div className="glass-panel p-6 rounded-xl border border-[#00C2FF]/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Clock size={20} className="text-[#00C2FF]" />
-          OTP Configuration
+          Passkey Configuration
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-semibold mb-2">OTP Expiration Time</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={otpExpiration}
-                onChange={(e) => setOtpExpiration(e.target.value)}
-                className="flex-1 bg-[#0A0F1C] border border-[#00C2FF]/20 rounded-lg px-4 py-2 outline-none focus:border-[#00C2FF]"
-              />
-              <span className="text-sm text-gray-400">seconds</span>
-            </div>
-          </div>
-
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">          <div>
             <label className="block text-sm font-semibold mb-2">Max Retry Attempts</label>
             <input
               type="number"
@@ -129,7 +127,7 @@ export function MFASettings() {
               <input
                 type="checkbox"
                 checked={enforceMFA}
-                onChange={(e) => setEnforceMFA(e.target.checked)}
+                onChange={(e) => handleEnforceMFAToggle(e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#00C2FF] peer-checked:to-[#1E90FF]"></div>
@@ -140,8 +138,12 @@ export function MFASettings() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <button className="gradient-button px-8 py-3 rounded-lg font-semibold">
-          Save Changes
+        <button 
+          onClick={handleSaveAll}
+          disabled={saving}
+          className="gradient-button px-8 py-3 rounded-lg font-semibold disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>

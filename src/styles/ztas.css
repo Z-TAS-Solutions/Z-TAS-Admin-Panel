@@ -54,18 +54,26 @@ body {
 
 /* Scanning animation */
 @keyframes scan {
-  0%, 100% { transform: translateY(-100%); opacity: 0; }
-  50% { opacity: 1; }
+
+    0%,
+    100% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .scanning-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--ztas-blue), transparent);
-  animation: scan 3s ease-in-out infinite;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--ztas-blue), transparent);
+    animation: scan 3s ease-in-out infinite;
 }
 
 /* Pulse animation */
