@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create a central Axios instance
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "104.43.91.57:8888",
+  baseURL: import.meta.env.VITE_API_URL || "http://104.43.91.57:8000",
   headers: {
     "Content-Type": "application/json",
   },
