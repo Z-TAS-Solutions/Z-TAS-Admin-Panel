@@ -1,4 +1,8 @@
-name = 'z-tas-admin-panel'
-pages_build_output_dir = "dist"
-compatibility_date = "2026-03-30"
+main = "dist/index.js"
+name = "z-tas-admin-panel"
+compatibility_date = "2025-12-16"
 compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "dist"
+binding = "ASSETS"
