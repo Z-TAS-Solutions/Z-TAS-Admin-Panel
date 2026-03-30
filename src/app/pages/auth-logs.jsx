@@ -203,7 +203,7 @@ export function AuthLogs() {
                                     Status
                                 </th>
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
-                                    IP Address
+                                    Device
                                 </th>
                                 <th className="text-left py-4 px-4 text-sm font-semibold text-[#00C2FF]">
                                     Location
@@ -247,10 +247,9 @@ export function AuthLogs() {
                                             </span>
                                         </td>
                                         <td className="py-4 px-4 text-sm font-mono text-gray-400">
-                                            {/* API returns device, not ipAddress directly per spec, but mapping what we have */}
-                                            {log.ip_address || "N/A"}
+                                            {log.device || "Unknown"}
                                         </td>
-                                        <td className="py-4 px-4 text-sm text-gray-400">{log.location || log.device || "Unknown"}</td>
+                                        <td className="py-4 px-4 text-sm text-gray-400">{log.location || "Unknown"}</td>
                                     </tr>
                                 ))
                             )}
