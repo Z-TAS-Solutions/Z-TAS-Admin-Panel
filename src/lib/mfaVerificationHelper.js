@@ -23,3 +23,4 @@ export const mfaVerificationHelper = {
     return Math.random().toString(36).substring(2, 10).toUpperCase();
   }
 };
+// helper added for MFA flow
