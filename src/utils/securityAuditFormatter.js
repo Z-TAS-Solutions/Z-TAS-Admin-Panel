@@ -1,5 +1,5 @@
 /**
- * Formats raw security audit logs into a human-readable format.
+ * Formats raw security audit logs into a human-readable format. audit formatter added.
  */
 export function formatSecurityAuditLog(logEntry) {
   if (!logEntry) return null;
