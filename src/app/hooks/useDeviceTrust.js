@@ -33,3 +33,4 @@ export function useDeviceTrust() {
 
   return { isTrusted, isLoading, markDeviceAsTrusted };
 }
+// device trust hook added
