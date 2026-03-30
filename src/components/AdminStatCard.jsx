@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * A generic UI component for displaying summary statistics in the admin dashboard.
+ * A generic UI component for displaying summary statistics in the admin dashboard. Admin stat card UI.
  */
 export function AdminStatCard({ title, value, icon, trend }) {
   const isPositiveTrend = trend && trend > 0;
