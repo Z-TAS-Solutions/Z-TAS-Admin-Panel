@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Create a central Axios instance
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://api.z-tas.com/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || "104.43.91.57:8888",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -12,8 +12,8 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // The /ping endpoint does NOT need an Authorization header according to specs
-    if (!config.url.endsWith('/ping')) {
-      const token = localStorage.getItem('access_token');
+    if (!config.url.endsWith("/ping")) {
+      const token = localStorage.getItem("access_token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response Interceptor: Global Error Handling
@@ -36,9 +36,9 @@ apiClient.interceptors.response.use(
 
       if (status === 401) {
         // Clear token and redirect to login
-        localStorage.removeItem('access_token');
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
+        localStorage.removeItem("access_token");
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
         }
       } else if (status === 403) {
         console.error("You don't have permission to do this");
@@ -59,7 +59,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;
