@@ -1,5 +1,5 @@
 /**
- * Utility for managing user sessions and checking for inactivity timeouts.
+ * session manager logic - Utility for managing user sessions and checking for inactivity timeouts. 
  */
 export class SessionManager {
   constructor(timeoutMinutes = 15) {
