@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { User, Mail, Phone, CreditCard, Save, ArrowLeft, Scan, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Mail, Phone, CreditCard, Save, ArrowLeft, KeyRound, Loader2, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router";
+import { usersService } from "../../services/users";
 
 export function UserEnrollment() {
   const navigate = useNavigate();
@@ -10,34 +11,78 @@ export function UserEnrollment() {
     phone: "",
     nic: ""
   });
+  const [otp, setOtp] = useState("");
+  const [userId, setUserId] = useState(null);
+  
+  const [step, setStep] = useState(1); // 1 = form, 2 = otp, 3 = success
+
   const [loading, setLoading] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess(false);
-    setIsScanning(true);
+    setMessage("");
+    setLoading(true);
 
     try {
-      // Simulate waiting for the physical Z-TAS biometric scanner
-      await new Promise(resolve => setTimeout(resolve, 3500));
-
-      setSuccess(true);
-      setFormData({ name: "", email: "", phone: "", nic: "" });
+      const res = await usersService.registerNew(formData);
+      setUserId(res.userId);
+      setMessage(res.message);
+      setStep(2);
     } catch (err) {
       console.error("Failed to enroll user", err);
-      setError("Failed to enroll user. Please try again.");
+      setError(err?.response?.data?.message || "Failed to register user. Please try again.");
     } finally {
-      setIsScanning(false);
+      setLoading(false);
     }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    setLoading(true);
+
+    try {
+      await usersService.verifyOTP({ userId, otp });
+      setStep(3);
+    } catch (err) {
+      console.error("Failed to verify OTP", err);
+      setError(err?.response?.data?.message || "Failed to verify OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setError("");
+    setMessage("");
+    setLoading(true);
+    try {
+      const res = await usersService.resendOTP({ userId });
+      setMessage(res.message || "OTP resent successfully.");
+    } catch (err) {
+      console.error("Failed to resend OTP", err);
+      setError(err?.response?.data?.message || "Failed to resend OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setStep(1);
+    setUserId(null);
+    setOtp("");
+    setFormData({ name: "", email: "", phone: "", nic: "" });
+    setError("");
+    setMessage("");
   };
 
   return (
@@ -53,7 +98,7 @@ export function UserEnrollment() {
         <div>
           <h1 className="text-2xl font-bold neon-text">User Enrollment</h1>
           <p className="text-sm text-gray-400 mt-1">
-            Register a new user profile for Z-TAS biometric scanner access
+            Register a new user profile and verify via OTP
           </p>
         </div>
       </div>
@@ -67,28 +112,58 @@ export function UserEnrollment() {
           </div>
         )}
 
-        {isScanning ? (
-          <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center animate-in fade-in zoom-in duration-500">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[#00C2FF]/20 blur-xl rounded-full animate-pulse object-cover"></div>
-              <div className="relative bg-[#0A0F1C] border border-[#00C2FF]/30 p-6 rounded-2xl">
-                <Scan size={48} className="text-[#00C2FF] animate-pulse" />
-              </div>
-            </div>
+        {message && (
+          <div className="mb-6 p-4 bg-[#00FF88]/10 border border-[#00FF88]/20 rounded-lg text-[#00FF88] text-sm flex items-center gap-2">
+            <CheckCircle2 size={18} />
+            {message}
+          </div>
+        )}
 
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-white tracking-wide">Awaiting Biometric Scan</h3>
-              <p className="text-sm text-gray-400 max-w-[250px] mx-auto">
-                Please instruct the user to place their palm on the Z-TAS biometric scanner.
+        {step === 2 ? (
+          <form onSubmit={handleVerifyOTP} className="space-y-5 animate-in fade-in duration-300">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-white mb-2">Verify OTP</h3>
+              <p className="text-sm text-gray-400">
+                Please enter the OTP sent to {formData.email} or {formData.phone}
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-[#00C2FF]/70 text-sm">
-              <Loader2 size={16} className="animate-spin" />
-              <span>Scanning for device input...</span>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">OTP</label>
+              <div className="flex items-center gap-3 glass-panel px-4 py-3 rounded-lg border border-[#00C2FF]/20 focus-within:border-[#00C2FF]">
+                <KeyRound size={18} className="text-[#00C2FF]" />
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter 6-digit OTP"
+                  required
+                  className="bg-transparent border-none outline-none flex-1 text-white placeholder-gray-500 tracking-widest"
+                />
+              </div>
             </div>
-          </div>
-        ) : success ? (
+
+            <div className="pt-4 flex flex-col gap-3">
+              <button
+                type="submit"
+                disabled={loading || !otp}
+                className="w-full gradient-button py-3 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                <span>Verify OTP</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                disabled={loading}
+                className="w-full py-3 rounded-lg border border-[#00C2FF]/30 text-[#00C2FF] font-semibold flex items-center justify-center gap-2 hover:bg-[#00C2FF]/10 transition-all disabled:opacity-50"
+              >
+                Resend OTP
+              </button>
+            </div>
+          </form>
+        ) : step === 3 ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center animate-in fade-in zoom-in duration-500">
             <div className="relative">
               <div className="absolute inset-0 bg-[#00FF88]/20 blur-xl rounded-full"></div>
@@ -100,19 +175,19 @@ export function UserEnrollment() {
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-white tracking-wide">Enrollment Complete</h3>
               <p className="text-sm text-gray-400">
-                The user has been successfully matched!
+                The user account has been successfully verified!
               </p>
             </div>
 
             <button
-              onClick={() => setSuccess(false)}
+              onClick={resetForm}
               className="mt-4 px-6 py-2 rounded-lg border border-[#00C2FF]/20 text-[#00C2FF] hover:bg-[#00C2FF]/10 transition-colors text-sm font-medium"
             >
               Enroll Another User
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in duration-300">
+          <form onSubmit={handleRegister} className="space-y-5 animate-in fade-in duration-300">
             {/* Name Field */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Full Name</label>
@@ -157,7 +232,7 @@ export function UserEnrollment() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="+94 70 123 4567"
+                  placeholder="0701234567"
                   required
                   className="bg-transparent border-none outline-none flex-1 text-white placeholder-gray-500"
                 />
@@ -178,20 +253,17 @@ export function UserEnrollment() {
                   className="bg-transparent border-none outline-none flex-1 text-white placeholder-gray-500 uppercase"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Required for biometric identity verification.
-              </p>
             </div>
 
             {/* Submit Button */}
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={isScanning}
+                disabled={loading}
                 className="w-full gradient-button py-3 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                <Save size={18} />
-                <span>Continue Enrollment</span>
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                <span>Register User</span>
               </button>
             </div>
           </form>
