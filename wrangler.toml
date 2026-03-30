@@ -1,4 +1,4 @@
-name = "ztas-admin-panel"
+name = 'z-tas-admin-panel'
 pages_build_output_dir = "dist"
 compatibility_date = "2026-03-30"
 compatibility_flags = ["nodejs_compat"]
