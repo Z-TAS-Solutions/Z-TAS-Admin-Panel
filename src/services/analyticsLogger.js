@@ -24,3 +24,5 @@ export const analyticsLogger = {
     analyticsLogger.logEvent('auth_failure', { username, reason, riskLevel: 'high' });
   }
 };
+
+// analytics logging added
