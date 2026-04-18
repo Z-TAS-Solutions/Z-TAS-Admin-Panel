@@ -1,5 +1,5 @@
-import { Shield, Key, Clock, Lock, Settings as SettingsIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Shield, Clock, Lock } from "lucide-react";
+import { useState } from "react";
 import { securityService } from "../../services/security";
 
 export function MFASettings() {

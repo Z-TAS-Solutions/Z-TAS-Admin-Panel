@@ -5,9 +5,6 @@ import {
   Users,
   Activity,
   CheckCircle2,
-  XCircle,
-  Key,
-  Fingerprint,
   AlertTriangle,
   TrendingUp,
   BarChart3,
@@ -15,9 +12,6 @@ import {
 import {
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -27,10 +21,6 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-
-const authTrendData = [];
-
-const recentActivity = [];
 
 const monthlyData = [
   { month: "Jan", users: 8234, auths: 45678, failures: 234 },
@@ -109,7 +99,7 @@ export function Dashboard() {
         await systemService.ping();
         const t1 = Date.now();
         setLatency(`${t1 - t0}ms`);
-      } catch (err) {
+      } catch {
         console.warn("Ping failed");
       }
     };

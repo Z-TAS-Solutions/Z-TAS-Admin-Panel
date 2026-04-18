@@ -1,60 +1,75 @@
 import axios from "axios";
 
-// Create a central Axios instance
+const baseURL = import.meta.env.VITE_API_URL || "https://api.z-tas.com/api/v1";
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://104.43.91.57:8000",
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
+function getStoredToken() {
+  return localStorage.getItem("token") || localStorage.getItem("access_token");
+}
+
+function isPublicAuthPath(url) {
+  if (!url || typeof url !== "string") return false;
+  return (
+    url.includes("/admin/users/register/") ||
+    url.includes("/webauthn/register/begin") ||
+    url.includes("/webauthn/register/finish") ||
+    url.includes("/webauthn/login/begin") ||
+    url.includes("/webauthn/login/finish")
+  );
+}
+
 // Request Interceptor: Attach authentication token
 apiClient.interceptors.request.use(
   (config) => {
-    // The /ping endpoint does NOT need an Authorization header according to specs
-    if (!config.url.endsWith("/ping")) {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    if (config.url?.endsWith("/ping")) {
+      return config;
+    }
+    if (isPublicAuthPath(config.url || "")) {
+      return config;
+    }
+    const token = getStoredToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
 // Response Interceptor: Global Error Handling
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response) {
-      const { status } = error.response;
+      const { status, config } = error.response;
 
       if (status === 401) {
-        // Clear token and redirect to login
-        localStorage.removeItem("access_token");
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
+        if (!isPublicAuthPath(config?.url || "")) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("access_token");
+          if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
+            window.location.href = "/login";
+          }
         }
       } else if (status === 403) {
         console.error("You don't have permission to do this");
-        alert("You don't have permission to do this"); // Replace with toast if preferred
+        alert("You don't have permission to do this");
       } else if (status === 404) {
         console.error("Not found");
-        // Handled silently globally or explicitly per-component
       } else if (status === 429) {
         console.warn("Too many requests, please slow down");
         alert("Too many requests, please slow down");
       } else if (status >= 500) {
         console.error("Something went wrong, please try again");
-        alert("Something went wrong, please try again"); // Replace with toast if preferred
+        alert("Something went wrong, please try again");
       }
     } else if (error.request) {
-      // The request was made but no response was received
       console.error("No response received from server.");
     }
 

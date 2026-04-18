@@ -32,9 +32,20 @@ export function UserEnrollment() {
     setLoading(true);
 
     try {
-      const res = await usersService.registerNew(formData);
-      setUserId(res.userId);
-      setMessage(res.message);
+      const res = await usersService.registerNew({
+        name: formData.name,
+        email: formData.email,
+        phone_no: formData.phone,
+        nic: formData.nic,
+        role: "Client",
+      });
+      const id =
+        res?.data?.custom_id ??
+        res?.custom_id ??
+        res?.userId ??
+        res?.data?.user_id;
+      setUserId(id);
+      setMessage(res?.message || res?.data?.message || "OTP sent. Please verify.");
       setStep(2);
     } catch (err) {
       console.error("Failed to enroll user", err);
@@ -51,7 +62,7 @@ export function UserEnrollment() {
     setLoading(true);
 
     try {
-      await usersService.verifyOTP({ userId, otp });
+      await usersService.verifyOTP({ user_id: userId, otp });
       setStep(3);
     } catch (err) {
       console.error("Failed to verify OTP", err);
@@ -66,7 +77,7 @@ export function UserEnrollment() {
     setMessage("");
     setLoading(true);
     try {
-      const res = await usersService.resendOTP({ userId });
+      const res = await usersService.resendOTP({ user_id: userId });
       setMessage(res.message || "OTP resent successfully.");
     } catch (err) {
       console.error("Failed to resend OTP", err);

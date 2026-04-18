@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from "react-router";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import {
     Smartphone,
     Bell,
@@ -26,7 +26,14 @@ const navItems = [
 
 export function AdminLayout() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
+        navigate("/login");
+    };
 
     return (
         <div className="min-h-screen">
@@ -92,7 +99,11 @@ export function AdminLayout() {
                         );
                     })}
 
-                    <button className="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left mt-4 border-t border-[#00C2FF]/20 pt-4">
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left mt-4 border-t border-[#00C2FF]/20 pt-4"
+                    >
                         <LogOut size={18} />
                         <span className="text-sm">Logout</span>
                     </button>

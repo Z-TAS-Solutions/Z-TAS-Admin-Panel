@@ -1,11 +1,10 @@
-import { Settings as SettingsIcon, Bell, Shield, Globe, Database, Mail } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Shield, Database, Mail } from "lucide-react";
 import { useState } from "react";
 
 export function Settings() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [twoFactorAuth, setTwoFactorAuth] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(true);
 
   return (
     <div className="space-y-6">

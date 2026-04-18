@@ -9,7 +9,7 @@ export const mfaVerificationHelper = {
    * @param {string} secret - The user's TOTP secret.
    * @returns {boolean} Whether the code is valid.
    */
-  validateCode: (code, secret) => {
+  validateCode: (code) => {
     if (!code || code.length !== 6) return false;
     // Mock validation logic
     return parseInt(code, 10) % 2 === 0;

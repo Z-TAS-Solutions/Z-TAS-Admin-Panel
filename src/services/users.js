@@ -7,3 +7,4 @@ export const usersService = {
   verifyOTP: (data) => apiClient.post('/admin/users/register/verifyOTP', data).then(res => res.data),
   resendOTP: (data) => apiClient.post('/admin/users/register/resendOTP', data).then(res => res.data),
 };
+

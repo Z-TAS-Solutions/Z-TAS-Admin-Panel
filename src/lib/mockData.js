@@ -57,7 +57,7 @@ export const mockEndpoints = [
   },
   {
     method: 'PATCH',
-    pattern: /^\/admin\/users\/([^\/]+)\/lock-status$/,
+    pattern: /^\/admin\/users\/([^/]+)\/lock-status$/,
     response: (config, match) => {
       const parsedBody = JSON.parse(config.data);
       return {
@@ -84,7 +84,7 @@ export const mockEndpoints = [
   },
   {
     method: 'POST',
-    pattern: /^\/admin\/devices\/([^\/]+)\/force-logout$/,
+    pattern: /^\/admin\/devices\/([^/]+)\/force-logout$/,
     response: (config, match) => {
       return {
         message: "Device logged out successfully",
