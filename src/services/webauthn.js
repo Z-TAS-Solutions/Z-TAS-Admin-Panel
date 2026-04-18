@@ -46,8 +46,9 @@ export const webauthnService = {
     return postRawJson("/webauthn/register/finish", body, headers);
   },
 
-  loginBegin: (username) =>
-    apiClient.post("/webauthn/login/begin", { username }).then((res) => res.data),
+  /** `payload` is `{ username }` or `{}` for usernameless / discoverable passkeys */
+  loginBegin: (payload) =>
+    apiClient.post("/webauthn/login/begin", payload).then((res) => res.data),
 
   loginFinish: (sessionToken, credential) => {
     const body = JSON.stringify(publicKeyCredentialToAuthenticationJSON(credential));

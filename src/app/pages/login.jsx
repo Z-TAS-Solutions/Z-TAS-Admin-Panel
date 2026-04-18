@@ -16,6 +16,11 @@ export function Login() {
     err?.message ||
     "Passkey login failed.";
 
+  function isNoCredentialsError(err) {
+    const msg = String(err?.response?.data?.message || err?.data?.message || err?.message || "");
+    return /no credential/i.test(msg);
+  }
+
   const handlePasskeyLogin = async () => {
     setError("");
     setLoading(true);
@@ -27,7 +32,17 @@ export function Login() {
         throw new Error("Passkeys require HTTPS or localhost with WebAuthn support.");
       }
 
-      const beginRes = await webauthnService.loginBegin(email.trim());
+      const trimmed = email.trim();
+      let beginRes;
+      try {
+        beginRes = await webauthnService.loginBegin({ username: trimmed });
+      } catch (firstErr) {
+        if (isNoCredentialsError(firstErr)) {
+          beginRes = await webauthnService.loginBegin({});
+        } else {
+          throw firstErr;
+        }
+      }
       const inner = beginRes?.data ?? beginRes;
       const sessionToken = inner?.session_token ?? beginRes?.data?.session_token;
       const assertionData = inner?.assertion_data ?? beginRes?.data?.assertion_data;
